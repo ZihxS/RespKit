@@ -1,0 +1,31 @@
+# Testing dan kontribusi
+
+Source project menyediakan pengujian unit untuk modul utama dan integration suite terpisah yang menjalankan request sungguhan melalui router upstream.
+
+## Perintah pengujian
+
+Jalankan dari root repository source:
+
+```bash
+make test
+make race
+make vet
+make coverage
+make integration
+make integration-mappers
+```
+
+Integration framework memerlukan Go 1.26+ dan internet untuk dependency upstream. Adapter pgx memerlukan Go 1.25+. Semua framework berada di module integration, bukan dependency bagi pengguna RespKit.
+
+Pada verification record 10 Oktober 2026, suite upstream race-enabled lulus 64 test pada Gin v1.12.0, Echo v4.16.0/v5.4.0, Fiber v2.52.12/v3.0.0, Chi v5.3.2, Gorilla/mux v1.8.1, dan Beego v2.3.10. Hasil lokal tersebut terpisah dari hasil build CI pada GitHub.
+
+## Panduan kontribusi
+
+- Adapter HTTP berada di `internal/transport`; uji terhadap framework upstream.
+- Klasifikasi error berada di `internal/resolver`; gunakan `errors.Is` dan `errors.As`.
+- Katalog bahasa berada di `internal/i18n/locales`, satu file JSON per bahasa.
+- Perubahan yang mengubah format response atau API harus menyertakan regression test.
+- Dependency framework atau driver tambahan harus tinggal di module opsional bawah `integrations/`.
+- Jangan memasukkan raw error atau data sensitif ke response publik maupun parameter terjemahan.
+
+Lihat [CONTRIBUTING.md](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md) dan [verification record](https://github.com/ZihxS/RespKit/blob/main/docs/VERIFICATION.md) untuk panduan kontribusi dan rincian hasil pengujian.

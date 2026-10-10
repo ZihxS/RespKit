@@ -1,0 +1,62 @@
+# Memulai
+
+## Persyaratan
+
+Modul utama RespKit kompatibel dengan Go 1.22 atau yang lebih baru dan tidak menarik dependency framework ke aplikasi. Modul untuk pengujian framework upstream dan adapter pgx berdiri terpisah.
+
+Source project saat ini memakai module path:
+
+```text
+github.com/ZihxS/RespKit
+```
+
+Source belum dipublikasikan sebagai repository Go module, jadi `go get` belum tersedia. Setelah repository dirilis, pasang package utama dengan:
+
+```bash
+go get github.com/ZihxS/RespKit/resp
+```
+
+## Response pertama dengan net/http
+
+```go
+package main
+
+import (
+	"log"
+	"net/http"
+
+	"github.com/ZihxS/RespKit/resp"
+)
+
+func main() {
+	http.HandleFunc("/users/123", func(w http.ResponseWriter, r *http.Request) {
+		if err := resp.OK(resp.HTTP(w, r), map[string]any{"user_id": 123}); err != nil {
+			log.Printf("write response: %v", err)
+		}
+	})
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+```
+
+Response sukses berstatus `200 OK`:
+
+```json
+{"success":true,"data":{"user_id":123}}
+```
+
+`resp.HTTP` menyatukan `http.ResponseWriter` dan `*http.Request` menjadi context yang bisa dipakai oleh API RespKit. Pola yang sama berlaku untuk Chi dan Gorilla/mux.
+
+## Mengirim error
+
+```go
+if err := resp.Fail(ctx, resp.ErrNotFound); err != nil {
+	log.Printf("write response: %v", err)
+}
+```
+
+Gunakan error domain seperti `resp.ErrNotFound` atau `resp.ErrValidation`, bukan teks error database atau pesan internal. RespKit menentukan status dan kode publik; isi error mentah tetap berada di sisi server.
+
+## API tanpa konfigurasi
+
+Helper package-level menggunakan konfigurasi default. Untuk konfigurasi terisolasi atau beberapa API yang mempunyai kebijakan berbeda, buat `*resp.Engine` dengan `resp.New(...)`. Lihat [Konfigurasi](configuration.md).

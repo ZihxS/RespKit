@@ -1,0 +1,34 @@
+# Bahasa dan terjemahan
+
+Bahasa default adalah `id`. Katalog bawaan `id` dan `en` di-embed ke binary dari file JSON; aplikasi tidak perlu membaca file locale dari disk saat runtime.
+
+RespKit memeriksa `Accept-Language` pada setiap request, mendukung bahasa dengan region seperti `id-ID`, lalu memilih katalog yang tersedia. Pesan untuk satu response memakai satu locale efektif agar terjemahan tidak tercampur. Header `Content-Language` menunjukkan bahasa yang dipakai.
+
+## Override bahasa untuk satu response
+
+```go
+return resp.Fail(ctx, resp.ErrNotFound, resp.Locale("en"))
+```
+
+Override response lebih diutamakan daripada `Accept-Language`.
+
+## Mengubah locale default dan menambah pesan
+
+```go
+err := resp.Configure(
+	resp.WithDefaultLocale("en"),
+	resp.WithTranslations(map[string]map[string]string{
+		"en": {"USER_SUSPENDED": "Your account is suspended."},
+		"id": {"USER_SUSPENDED": "Akun ini ditangguhkan."},
+	}),
+)
+if err != nil {
+	return err
+}
+```
+
+Panggil `Configure` saat startup sebelum melayani request. Konfigurasi pengganti harus memiliki katalog untuk bahasa default. `WithTranslations` menambah atau mengganti entri katalog.
+
+## Parameter pesan
+
+Terjemahan validasi dapat menggunakan placeholder, misalnya `{field}` dan `{min}`. Berikan nilainya melalui `resp.FieldError.Params`. Kode error tetap sama di semua bahasa; yang berubah hanya pesan yang dilihat pengguna.

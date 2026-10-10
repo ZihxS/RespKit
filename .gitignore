@@ -7,3 +7,5 @@ coverage.txt
 coverage.out
 reports/
 *.zip
+book/node_modules/
+_book/

@@ -1,0 +1,40 @@
+# PostgreSQL dan pgx
+
+Modul utama mengenali SQLSTATE `23505` melalui interface `SQLState() string` tanpa mengimpor driver PostgreSQL. Kondisi itu dipetakan ke `RESOURCE_ALREADY_EXISTS` (409). SQLSTATE lain dibiarkan sebagai error internal secara default karena arti HTTP-nya bergantung pada domain aplikasi.
+
+## Adapter opsional pgx/v5
+
+Adapter ada di module terpisah dan memakai pgx/v5. Ia tidak membuka koneksi atau mengubah konfigurasi global RespKit.
+
+```go
+import (
+	pgxmapper "github.com/ZihxS/RespKit/integrations/pgx"
+	"github.com/ZihxS/RespKit/resp"
+)
+
+api, err := resp.New(pgxmapper.Option())
+if err != nil {
+	return err
+}
+
+return api.Fail(ctx, dbErr)
+```
+
+Versi adapter saat dokumentasi ini dibuat memakai `pgx/v5 v5.11.0` dan memerlukan Go 1.25. Dependency ini terpisah dari modul utama Go 1.22.
+
+## SQLSTATE yang dipetakan
+
+| SQLSTATE | Makna umum | Kode RespKit | HTTP |
+| --- | --- | --- | ---: |
+| `22003`, `22007`, `22008`, `22018`, `22021`, `22023`, `22P02`, `22P03` | Nilai input numeric, waktu, teks, atau biner tidak valid | `BAD_REQUEST` | 400 |
+| `22001` | Nilai teks melampaui panjang kolom | `VALIDATION_FAILED` | 422 |
+| `23502`, `23503`, `23514` | Not-null, foreign key, atau check constraint | `VALIDATION_FAILED` | 422 |
+| `23505` | Unique constraint | `RESOURCE_ALREADY_EXISTS` | 409 |
+| `23000`, `23001`, `23P01` | Konflik integritas, restrict, atau exclusion | `RESOURCE_CONFLICT` | 409 |
+| `40000`, `40001`, `40P01` | Rollback, serialization failure, atau deadlock | `RESOURCE_CONFLICT` | 409 |
+| `08000`, `08001`, `08003`, `08004`, `08006`, `08007` | Koneksi database gagal | `SERVICE_UNAVAILABLE` | 503 |
+| `53000`, `53100`, `53200`, `53300`, `53400` | Resource server tidak cukup atau batas konfigurasi tercapai | `SERVICE_UNAVAILABLE` | 503 |
+| `57P01`, `57P02`, `57P03` | Database shutdown atau belum dapat menerima koneksi | `SERVICE_UNAVAILABLE` | 503 |
+| `55P03` | Lock tidak tersedia | `RESOURCE_CONFLICT` | 409 |
+
+Semua kode PostgreSQL lain dipetakan secara konservatif ke `INTERNAL_ERROR` (500). Pesan mentah PostgreSQL tidak dikirim ke client; SQLSTATE aman tetap tersedia pada diagnostics.

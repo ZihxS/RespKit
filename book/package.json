@@ -1,0 +1,10 @@
+{
+  "name": "respkit-book",
+  "private": true,
+  "scripts": {
+    "build": "honkit build . ../_book"
+  },
+  "devDependencies": {
+    "honkit": "6.2.2"
+  }
+}
