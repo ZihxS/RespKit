@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { Brand } from "@/components/brand";
+
 const sections = [
   {
     title: "Get started with RespKit",
@@ -22,8 +24,8 @@ export default function Home() {
   return (
     <main className="home-hero flex min-h-screen flex-col">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6">
-        <Link className="text-lg font-semibold tracking-tight" href="/">
-          RespKit
+        <Link className="inline-flex items-center" href="/">
+          <Brand />
         </Link>
         <Link
           className="rounded-lg border border-fd-border px-4 py-2 text-sm font-medium transition-colors hover:bg-fd-muted"
@@ -78,10 +80,6 @@ export default function Home() {
           ))}
         </div>
       </section>
-
-      <footer className="mx-auto w-full max-w-6xl px-6 py-6 text-sm text-fd-muted-foreground">
-        RespKit documentation
-      </footer>
     </main>
   );
 }

@@ -122,4 +122,4 @@ func handler(c fiber.Ctx) error {
 
 ## Upstream compatibility tests
 
-The separate module at `integrations/framework-tests` sends requests through real upstream routers. It checks status codes, JSON bodies, `Content-Language`, `Vary`, `Content-Type`, error confidentiality, `Location`, and empty 204 responses. The [verification report](/verification) lists the pinned framework versions. Applications should also test the versions they choose to use.
+The separate module at `integrations/framework-tests` sends requests through real upstream routers. It checks status codes, JSON bodies, `Content-Language`, `Vary`, `Content-Type`, error confidentiality, `Location`, and empty 204 responses. The [compatibility guide](/verification) explains where to find the selected dependency versions and their CI results. Applications should also test the versions they choose to use.

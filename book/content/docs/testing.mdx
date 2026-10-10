@@ -18,9 +18,9 @@ make integration
 make integration-mappers
 ```
 
-The core module supports Go 1.22 and later. The framework test module requires Go 1.26 or later, and the optional pgx adapter requires Go 1.25. The hosted CI workflow currently runs each job with Go 1.27.x. Downloading dependencies for the integration suites requires network access.
+Each module declares its minimum Go version in `go.mod`. Optional integrations can require a newer toolchain than the core library. Downloading dependencies for the integration suites requires network access.
 
-The upstream suite last recorded 64 race-enabled tests across Gin v1.12.0, Echo v4.16.0 and v5.4.0, Fiber v2.52.12 and v3.0.0, Chi v5.3.2, Gorilla/mux v1.8.1, and Beego v2.3.10. The latest [GitHub Actions quality-gates run](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed on Ubuntu, macOS, and Windows, including the framework and pgx integration jobs.
+The upstream suite exercises real Gin, Echo, Fiber, Chi, Gorilla/mux, and Beego routers with the race detector enabled. The [compatibility guide](/verification) explains how to find the selected dependency versions, platform matrix, and current CI results.
 
 ## Contribution guidelines
 
@@ -32,4 +32,4 @@ The upstream suite last recorded 64 race-enabled tests across Gin v1.12.0, Echo 
 - Do not put raw errors, secrets, or private values in public responses or translation parameters.
 - Update the architecture and verification documentation when a change affects package boundaries or test claims.
 
-See the repository's [contribution guide](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md) and [verification report](/verification) for more detail.
+See the repository's [contribution guide](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md) and [compatibility guide](/verification) for more detail.

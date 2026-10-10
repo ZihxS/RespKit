@@ -1,4 +1,4 @@
-# RespKit
+<h1 align="center">RespKit</h1>
 
 <p align="center">
   <img src="assets/respkit.png" alt="RespKit" width="560">

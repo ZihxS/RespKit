@@ -1,4 +1,5 @@
 import { createMDX } from "fumadocs-mdx/next";
+import { fileURLToPath } from "node:url";
 
 const basePath = "/RespKit";
 const isGitHubPages = process.env.RESPKIT_DOCS_GITHUB_PAGES === "true";
@@ -14,6 +15,9 @@ const config = {
   output: "export",
   reactStrictMode: true,
   trailingSlash: true,
+  turbopack: {
+    root: fileURLToPath(new URL("..", import.meta.url)),
+  },
 };
 
 export default createMDX()(config);
