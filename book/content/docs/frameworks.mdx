@@ -1,0 +1,97 @@
+---
+title: HTTP framework
+description: Contoh integrasi RespKit dengan router Go dan batas kompatibilitasnya.
+---
+
+Semua contoh menggunakan module path `github.com/ZihxS/RespKit` dan package publik yang sama:
+
+```go
+import "github.com/ZihxS/RespKit/resp"
+```
+
+Gin, Echo v4/v5, dan Fiber v2/v3 menerima context framework langsung. `net/http`, Chi, Gorilla/mux, dan Beego v2 menggunakan pasangan `http.ResponseWriter` dan `*http.Request` melalui `resp.HTTP(w, r)`.
+
+## net/http, Chi, dan Gorilla/mux
+
+Chi dan Gorilla/mux mendaftarkan handler `net/http` biasa. Handler ini dapat dipakai pada kedua router:
+
+```go
+func handler(w http.ResponseWriter, r *http.Request) {
+	if err := resp.OK(resp.HTTP(w, r), map[string]any{"user_id": 7}); err != nil {
+		log.Printf("write response: %v", err)
+	}
+}
+```
+
+```go
+router.Get("/users", handler)                         // Chi
+router.HandleFunc("/users", handler).Methods("GET") // Gorilla/mux
+```
+
+## Beego v2
+
+Gunakan response writer dan request yang tersedia pada context Beego:
+
+```go
+func handler(c *beecontext.Context) {
+	if err := resp.OK(resp.HTTP(c.ResponseWriter, c.Request), map[string]any{"user_id": 7}); err != nil {
+		log.Printf("write response: %v", err)
+	}
+}
+```
+
+Import tipe context dari `github.com/beego/beego/v2/server/web/context`.
+
+## Gin
+
+Gin context dapat dipass langsung. Error penulisan dapat diteruskan ke error stack Gin:
+
+```go
+func handler(c *gin.Context) {
+	if err := resp.OK(c, map[string]any{"user_id": 7}); err != nil {
+		_ = c.Error(err)
+	}
+}
+```
+
+## Echo v4 dan v5
+
+Kembalikan error dari helper agar error handler Echo dapat memprosesnya:
+
+```go
+func handler(c echo.Context) error { // Echo v4
+	return resp.Fail(c, resp.ErrNotFound)
+}
+```
+
+Echo v5 memakai package `github.com/labstack/echo/v5` dan handler dengan context `*echo.Context`:
+
+```go
+func handler(c *echo.Context) error {
+	return resp.Fail(c, resp.ErrNotFound)
+}
+```
+
+## Fiber v2 dan v3
+
+Kembalikan error helper kepada Fiber:
+
+```go
+func handler(c *fiber.Ctx) error { // Fiber v2
+	return resp.OK(c, map[string]any{"user_id": 7})
+}
+```
+
+Fiber v3 menggunakan `fiber.Ctx` dari package `github.com/gofiber/fiber/v3`.
+
+## Detail adapter
+
+- Adapter Gin mengenali `JSON(int, any)`, `GetHeader(string)`, dan `Header(string, string)`.
+- Adapter Echo memakai `Blob(int, string, []byte)`, `Request() *http.Request`, dan header dari `Response().Header()`.
+- Adapter Fiber memakai `Get(string, ...string) string`, `Set(string, string)`, `Send([]byte) error`, dan refleksi untuk pemanggilan `Status(int)`. Return type `Status` berbeda antara Fiber v2 dan v3.
+- Chi, Gorilla/mux, dan Beego v2 memakai `resp.HTTP`, sehingga module utama tidak mengimpor ketiganya.
+- Pasang RespKit di titik akhir handler. Middleware yang sudah menulis body atau status dapat mencegah RespKit mengatur response.
+
+## Verifikasi versi upstream
+
+Test terpisah di `integrations/framework-tests` menjalankan request melalui router upstream sungguhan. Test memeriksa status, JSON, `Content-Language`, `Vary`, `Content-Type`, kerahasiaan error, header `Location`, dan perilaku body kosong untuk 204. Test ini memverifikasi versi yang dipin pada [catatan verifikasi](/verification); versi framework lain tetap perlu diuji oleh aplikasi yang menggunakannya.

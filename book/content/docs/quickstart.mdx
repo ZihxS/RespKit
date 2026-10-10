@@ -1,5 +1,7 @@
-# Memulai
-
+---
+title: "Memulai"
+description: "Instalasi RespKit dan response HTTP pertama."
+---
 ## Persyaratan
 
 Modul utama RespKit kompatibel dengan Go 1.22 atau yang lebih baru dan tidak menarik dependency framework ke aplikasi. Modul untuk pengujian framework upstream dan adapter pgx berdiri terpisah.
@@ -59,4 +61,4 @@ Gunakan error domain seperti `resp.ErrNotFound` atau `resp.ErrValidation`, bukan
 
 ## API tanpa konfigurasi
 
-Helper package-level menggunakan konfigurasi default. Untuk konfigurasi terisolasi atau beberapa API yang mempunyai kebijakan berbeda, buat `*resp.Engine` dengan `resp.New(...)`. Lihat [Konfigurasi](configuration.md).
+Helper package-level menggunakan konfigurasi default. Untuk konfigurasi terisolasi atau beberapa API yang mempunyai kebijakan berbeda, buat `*resp.Engine` dengan `resp.New(...)`. Lihat [Konfigurasi](/configuration).

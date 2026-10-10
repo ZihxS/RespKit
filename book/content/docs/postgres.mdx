@@ -1,5 +1,7 @@
-# PostgreSQL dan pgx
-
+---
+title: "PostgreSQL dan pgx"
+description: "Pemetaan SQLSTATE PostgreSQL dan adapter pgx."
+---
 Modul utama mengenali SQLSTATE `23505` melalui interface `SQLState() string` tanpa mengimpor driver PostgreSQL. Kondisi itu dipetakan ke `RESOURCE_ALREADY_EXISTS` (409). SQLSTATE lain dibiarkan sebagai error internal secara default karena arti HTTP-nya bergantung pada domain aplikasi.
 
 ## Adapter opsional pgx/v5

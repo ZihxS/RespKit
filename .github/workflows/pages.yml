@@ -1,4 +1,4 @@
-name: Publish GitBook documentation
+name: Publish RespKit documentation
 
 on:
   push:
@@ -35,18 +35,21 @@ jobs:
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 
-      - name: Install book generator
+      - name: Install documentation dependencies
         run: npm ci
         working-directory: book
 
-      - name: Build GitBook site
+      - name: Build static documentation
         run: npm run build
         working-directory: book
+        env:
+          RESPKIT_DOCS_GITHUB_PAGES: "true"
+          NEXT_TELEMETRY_DISABLED: "1"
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4
         with:
-          path: _book
+          path: book/out
 
   deploy:
     environment:

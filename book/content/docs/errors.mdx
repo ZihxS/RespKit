@@ -1,5 +1,7 @@
-# Pemetaan error
-
+---
+title: "Pemetaan error"
+description: "Pemetaan error Go ke kode publik dan status HTTP."
+---
 RespKit memetakan error berdasarkan tipe dan identitasnya, termasuk error yang dibungkus dengan `%w`. Pencocokan menggunakan `errors.Is` dan `errors.As`, bukan membaca teks `Error()`.
 
 ## Kode bawaan
@@ -16,7 +18,7 @@ RespKit memetakan error berdasarkan tipe dan identitasnya, termasuk error yang d
 | `resp.ErrUnavailable` | `SERVICE_UNAVAILABLE` | 503 |
 | Error tak dikenal | `INTERNAL_ERROR` | 500 |
 
-Error sintaks atau tipe JSON yang tidak sesuai dipetakan ke `BAD_REQUEST`. SQLSTATE `23505` dikenali sebagai pelanggaran unik dan menjadi `RESOURCE_ALREADY_EXISTS` (409). Untuk kondisi database lain, tentukan makna domain secara eksplisit atau gunakan [adapter pgx](postgres.md).
+Error sintaks atau tipe JSON yang tidak sesuai dipetakan ke `BAD_REQUEST`. SQLSTATE `23505` dikenali sebagai pelanggaran unik dan menjadi `RESOURCE_ALREADY_EXISTS` (409). Untuk kondisi database lain, tentukan makna domain secara eksplisit atau gunakan [adapter pgx](/postgres).
 
 ## Membuat error aplikasi
 

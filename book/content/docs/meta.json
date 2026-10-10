@@ -1,0 +1,24 @@
+{
+  "title": "Dokumentasi",
+  "pages": [
+    "docs",
+    "---Mulai---",
+    "quickstart",
+    "responses",
+    "---Konsep---",
+    "errors",
+    "localization",
+    "configuration",
+    "---Integrasi---",
+    "frameworks",
+    "postgres",
+    "---Referensi---",
+    "diagnostics",
+    "security",
+    "architecture",
+    "---Kontribusi dan rilis---",
+    "testing",
+    "verification",
+    "release"
+  ]
+}

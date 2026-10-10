@@ -14,7 +14,11 @@ var localeCatalogs embed.FS
 
 // BuiltInTranslations loads the bundled JSON catalog for each supported locale.
 func BuiltInTranslations() (map[string]map[string]string, error) {
-	files, err := fs.Glob(localeCatalogs, "locales/*.json")
+	return loadTranslations(localeCatalogs)
+}
+
+func loadTranslations(catalogs fs.FS) (map[string]map[string]string, error) {
+	files, err := fs.Glob(catalogs, "locales/*.json")
 	if err != nil {
 		return nil, fmt.Errorf("i18n: list embedded locale catalogs: %w", err)
 	}
@@ -24,7 +28,7 @@ func BuiltInTranslations() (map[string]map[string]string, error) {
 
 	translations := make(map[string]map[string]string, len(files))
 	for _, filename := range files {
-		data, err := localeCatalogs.ReadFile(filename)
+		data, err := fs.ReadFile(catalogs, filename)
 		if err != nil {
 			return nil, fmt.Errorf("i18n: read embedded catalog %q: %w", filename, err)
 		}

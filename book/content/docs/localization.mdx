@@ -1,5 +1,7 @@
-# Bahasa dan terjemahan
-
+---
+title: "Bahasa dan terjemahan"
+description: "Katalog JSON, Accept-Language, dan pesan terjemahan."
+---
 Bahasa default adalah `id`. Katalog bawaan `id` dan `en` di-embed ke binary dari file JSON; aplikasi tidak perlu membaca file locale dari disk saat runtime.
 
 RespKit memeriksa `Accept-Language` pada setiap request, mendukung bahasa dengan region seperti `id-ID`, lalu memilih katalog yang tersedia. Pesan untuk satu response memakai satu locale efektif agar terjemahan tidak tercampur. Header `Content-Language` menunjukkan bahasa yang dipakai.

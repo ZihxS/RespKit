@@ -8,4 +8,9 @@ coverage.out
 reports/
 *.zip
 book/node_modules/
+book/.next/
+book/.source/
+book/out/
+book/next-env.d.ts
+book/tsconfig.tsbuildinfo
 _book/

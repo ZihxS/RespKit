@@ -2,7 +2,7 @@
 
 **Zero-config REST response formatting, safe Go error normalization, Indonesian/English localization and structured diagnostics. One `resp` API across Go HTTP frameworks.**
 
-**Dokumentasi:** [RespKit Book](https://zihxs.github.io/RespKit/)
+**Dokumentasi:** [RespKit Docs](https://zihxs.github.io/RespKit/)
 
 > **Release state:** Code is an unpublished `v1.0.0` source candidate, not a tagged GitHub release. The selected module path is `github.com/ZihxS/RespKit`. Runtime unit tests pass with **100% combined statement coverage** for `resp` and `internal/...`. Upstream framework tests run from `integrations/framework-tests`; see [verification](docs/VERIFICATION.md) for tested versions.
 

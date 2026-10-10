@@ -44,7 +44,11 @@ type Engine struct {
 }
 
 func New(opts ...Option) (*Engine, error) {
-	translations, err := builtInTranslations()
+	return newEngine(opts, builtInTranslations)
+}
+
+func newEngine(opts []Option, loadTranslations func() (map[string]map[string]string, error)) (*Engine, error) {
+	translations, err := loadTranslations()
 	if err != nil {
 		return nil, fmt.Errorf("resp: load built-in translations: %w", err)
 	}
@@ -154,11 +158,15 @@ func WithMapper(name string, mapper Mapper) Option {
 var defaultEngine atomic.Pointer[Engine]
 
 func init() {
-	e, err := New()
+	defaultEngine.Store(mustNewEngine(New))
+}
+
+func mustNewEngine(newEngine func(...Option) (*Engine, error)) *Engine {
+	e, err := newEngine()
 	if err != nil {
 		panic(fmt.Errorf("resp: initialize default engine: %w", err))
 	}
-	defaultEngine.Store(e)
+	return e
 }
 
 func current() *Engine {

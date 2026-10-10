@@ -10,7 +10,7 @@ vet:
 	go vet ./...
 
 coverage:
-	go test -count=1 ./resp -coverpkg=./resp,./internal/... -coverprofile=coverage.out
+	go test -count=1 ./resp ./internal/... -coverpkg=./resp,./internal/... -coverprofile=coverage.out
 	go tool cover -func=coverage.out
 	@go tool cover -func=coverage.out | grep -E '^total:.*100\.0%$$'
 

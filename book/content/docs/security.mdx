@@ -1,5 +1,7 @@
-# Keamanan
-
+---
+title: "Keamanan"
+description: "Penanganan pesan error dan pelaporan celah keamanan."
+---
 Raw `err.Error()` tidak pernah dimasukkan ke pesan publik secara default. Error yang tidak dikenal mendapat kode umum `INTERNAL_ERROR` dan status 500. Gunakan kode error domain yang stabil, dan jangan memakai pesan mentah database/provider sebagai teks untuk client.
 
 ## Jangan aktifkan debug message di production

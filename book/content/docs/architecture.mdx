@@ -1,0 +1,71 @@
+---
+title: Arsitektur
+description: Batas package, alur response, dan aturan pengembangan RespKit.
+---
+
+## Kontrak utama
+
+- `resp.OK(ctx, data)` dan `resp.Fail(ctx, err)` dapat langsung digunakan tanpa registrasi atau setup.
+- Envelope default memakai key milik RespKit dalam `snake_case`; key aplikasi di dalam `data` tidak diubah.
+- Penamaan, katalog bahasa tambahan, mapper error, RFC 9457, dan detail debug lokal bersifat opt-in.
+- Pesan error internal tidak boleh masuk ke body response biasa. `WithExposeInternalErrors(true)` tidak aman untuk aplikasi yang dapat diakses publik.
+- Modul utama netral terhadap framework, tidak mengimpor Gin, Echo, Fiber, atau framework lain. `net/http`, Chi, Gorilla/mux, dan Beego v2 memakai `resp.HTTP(w, r)`.
+- Modul utama kompatibel dengan Go 1.22+ dan hanya bergantung pada standard library.
+
+## Dependency graph
+
+```text
+handler aplikasi
+      |
+      v
+resp/ public facade
+  |       |       |        |
+  v       v       v        v
+transport resolver i18n formatter
+              |
+              v
+          diagnostics
+```
+
+Package di bawah `internal/` adalah detail implementasi. Aplikasi memakai API yang diekspor dari `resp`. Package internal boleh mengimpor standard library, tetapi tidak mengimpor package `resp` sehingga dependency tetap satu arah.
+
+## Alur response
+
+1. Helper package-level atau method pada `Engine` menerima response.
+2. Resolver memeriksa error bertipe melalui `errors.Is` dan `errors.As`. Error yang tidak dikenal mendapat status 500 dan pesan umum.
+3. Transport memilih adapter framework melalui pemeriksaan interface. Reflection hanya dipakai untuk perbedaan bentuk method framework tertentu.
+4. `Accept-Language` atau override response memilih katalog statis yang sesuai. Kode publik tidak berubah berdasarkan locale.
+5. Formatter membuat envelope atau representasi RFC 9457 tanpa mengubah key dalam `data`.
+6. JSON di-encode sebelum status ditulis. Response 204 dan request HEAD tidak memiliki body.
+7. CLI diagnostics hanya mengeluarkan metadata dan tidak mencetak pesan error aplikasi mentah.
+
+## Source layout
+
+```text
+resp/                  API publik, engine, helper, dan facade
+internal/transport/    adapter framework dan deteksi context
+internal/resolver/     klasifikasi error dan SQLSTATE
+internal/i18n/         katalog JSON yang di-embed dan pencocokan bahasa
+internal/formatter/    envelope, penamaan key, dan RFC 9457
+internal/diagnostics/  metadata aman untuk CLI dan AI tooling
+cmd/respkit/           doctor, catalog, explain, dan version
+examples/nethttp/      contoh runnable untuk net/http
+integrations/          module pengujian dan adapter opsional terpisah
+book/                  source dokumentasi dan website statis
+```
+
+## Aturan untuk kontribusi
+
+- Adapter framework berada di `internal/transport/`; package `resp` tidak mengimpor framework eksternal.
+- Katalog bahasa disimpan sebagai file JSON terpisah di `internal/i18n/locales/`.
+- Tambahkan klasifikasi error hanya jika pemetaannya deterministik dan aman. Untuk error khusus dependency, gunakan adapter opsional.
+- Uji wrapped error, input tidak valid, fallback bahasa, dan kerahasiaan pesan.
+- `resp.Configure` mengganti engine default secara atomik. Jangan mutasi map atau slice engine yang sudah dibuat.
+- Pin versi framework di module integration dan jalankan test terhadap router upstream sebenarnya.
+
+## Batas yang diketahui
+
+- Test framework upstream berjalan dari `integrations/framework-tests`; adapter production opsional berada di module terpisah.
+- Adapter Fiber memakai satu pemanggilan refleksi untuk `Status(int)` karena return type Fiber v2 dan v3 berbeda.
+- Context framework hanya berlaku untuk satu request, dan penulisan response hanya dapat dilakukan satu kali. RespKit tidak dapat membatalkan status yang sudah dikirim.
+- Gate `100.0%` mengukur statement coverage gabungan package `resp` dan `internal/...`; gate itu tidak menyatakan branch coverage penuh atau menguji semua versi dependency.

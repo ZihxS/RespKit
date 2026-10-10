@@ -1,0 +1,60 @@
+---
+title: Catatan verifikasi
+description: Versi toolchain, hasil test lokal, dan status GitHub Actions RespKit.
+---
+
+Dokumen ini mencatat test yang benar-benar dijalankan serta batas klaim kompatibilitasnya.
+
+## Hasil lokal
+
+Run lokal terakhir yang tercatat dilakukan pada 10 Oktober 2026, dengan Go 1.27.1 di macOS arm64. Module utama masih menargetkan Go 1.22+. Framework tests memerlukan Go 1.26+, sedangkan adapter pgx opsional memerlukan Go 1.25+.
+
+| Pemeriksaan | Hasil lokal yang tercatat | Perintah |
+| --- | --- | --- |
+| Test module utama | PASS | `make test` |
+| Test dengan versi minimum Go | PASS — Go 1.22.12 | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
+| Race detector | PASS | `make race` |
+| Analisis statis | PASS | `make vet` |
+| Statement coverage gabungan `resp` dan `internal/...` | PASS — 100.0% sebelum perbaikan coverage CI | `make coverage` |
+| Build smoke Linux/amd64 dan Windows/amd64 | PASS — compile-only | `GOOS=linux/windows GOARCH=amd64 go test -exec=true -count=1 ./...` |
+| Framework upstream dengan race detector | PASS — 64 test | `go test -race -count=1 -v ./...` di `integrations/framework-tests` |
+| Adapter pgx dengan race detector | PASS | `make integration-mappers` |
+
+Build smoke cross-platform hanya mengompilasi test binary; command tersebut tidak menjalankannya pada OS tujuan.
+
+## CI GitHub
+
+Run awal setelah dokumentasi dipush, `38070616402`, menemukan dua masalah yang sedang diperbaiki:
+
+- Test Go 1.22 di `macos-latest` gagal saat menjalankan binary test dengan error `dyld` pada runner macOS 26 arm64. Matriks dipindahkan untuk menjalankan Go 1.22 pada runner `macos-15-intel`; Go 1.27 tetap berjalan di `macos-latest`.
+- Gate coverage di CI mencatat 98.4%. Test loader katalog JSON dan jalur kegagalan inisialisasi engine ditambahkan agar gate menghitung semua package target dan tetap mengharuskan 100.0% statement coverage.
+
+Perubahan ini hanya dinyatakan lulus setelah workflow CI terbaru selesai dengan status sukses. Hasil terbaru dicatat pada checklist perilisan.
+
+## Versi framework upstream
+
+Module di `integrations/framework-tests` mengunci versi berikut dan mengirim request melalui router upstream sungguhan:
+
+| Framework/router | Versi |
+| --- | ---: |
+| Gin | v1.12.0 |
+| Echo | v4.16.0, v5.4.0 |
+| Fiber | v2.52.12, v3.0.0 |
+| Chi | v5.3.2 |
+| Gorilla/mux | v1.8.1 |
+| Beego | v2.3.10 |
+
+Test memeriksa status, body JSON, locale dan header cache, kerahasiaan error, `Location`, serta response 204 tanpa body. Framework dan driver tidak menjadi dependency module utama. Keberhasilan suite ini hanya mencakup versi yang tertulis di tabel.
+
+## Perintah untuk mengulang verifikasi
+
+```bash
+make test
+make race
+make vet
+make coverage
+make integration
+make integration-mappers
+```
+
+Test framework dan module pgx perlu akses internet untuk mengambil dependency upstream.
