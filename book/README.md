@@ -16,3 +16,7 @@ npm run build
 ```
 
 The generated site is written to `out/`. GitHub Pages builds and publishes it from the `main` branch workflow.
+
+## Branding
+
+The navigation logo uses `assets/respkit.png` from the repository root. Update that file to change the logo in both the README and the documentation site.

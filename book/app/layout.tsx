@@ -11,10 +11,10 @@ export const metadata: Metadata = {
     default: "RespKit Documentation",
     template: "%s | RespKit",
   },
-  description: "Dokumentasi RespKit, pustaka response HTTP untuk Go.",
+  description: "Consistent HTTP responses and safe error handling for Go applications.",
   openGraph: {
     title: "RespKit Documentation",
-    description: "Dokumentasi RespKit, pustaka response HTTP untuk Go.",
+    description: "Consistent HTTP responses and safe error handling for Go applications.",
     url: siteURL,
     siteName: "RespKit",
     type: "website",
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning>
       <body className="flex min-h-screen flex-col font-sans">
         <RootProvider
           search={{

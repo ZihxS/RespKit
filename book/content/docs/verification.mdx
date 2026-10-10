@@ -1,51 +1,46 @@
 ---
-title: "Verification report"
-description: "Toolchain versions, local checks, and hosted CI results."
+title: "Compatibility"
+description: "Understand module requirements, framework support, and the scope of CI checks."
 ---
 
-This report records checks that were run and the limits of the compatibility claims.
+RespKit separates its core response API from optional integrations. Each module declares its own Go requirements and dependencies, and CI checks those modules independently.
 
-## Local verification
+## Go and module requirements
 
-The latest recorded local run was performed on 10 October 2026 with Go 1.27.1 on macOS arm64. The core module supports Go 1.22 and later. The core tests also passed locally with Go 1.22.12.
+The minimum Go version for each module is declared in its `go.mod` file. Optional integrations can require a newer toolchain than the core library.
 
-| Check | Result | Command |
+| Module | Purpose | Current requirements |
 | --- | --- | --- |
-| Core tests | Pass | `make test` |
-| Tests with minimum supported Go version | Pass with Go 1.22.12 | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
-| Race detector | Pass | `make race` |
-| Static analysis | Pass | `make vet` |
-| Combined statement coverage for `resp` and `internal/...` | 100.0% | `make coverage` |
-| Linux/amd64 and Windows/amd64 cross-build smoke | Pass; compile only | `GOOS=linux/windows GOARCH=amd64 go test -exec=true -count=1 ./...` |
-| GitHub Actions workflow syntax | Pass | `actionlint .github/workflows/ci.yml` |
-| Upstream framework suite with race detector | Pass; 64 tests | `go test -race -count=1 -v ./...` in `integrations/framework-tests` |
-| Optional pgx mapper suite with race detector | Pass | `make integration-mappers` |
+| Core | Public response helpers and internal runtime packages; standard library only | [Root go.mod](https://github.com/ZihxS/RespKit/blob/main/go.mod) |
+| Framework tests | Runtime checks against upstream HTTP frameworks | [Framework test go.mod](https://github.com/ZihxS/RespKit/blob/main/integrations/framework-tests/go.mod) |
+| Optional pgx adapter | PostgreSQL error mapping with pgx | [pgx adapter go.mod](https://github.com/ZihxS/RespKit/blob/main/integrations/pgx/go.mod) |
 
-The cross-build smoke command compiles test binaries from the local macOS machine; it does not run those binaries on Linux or Windows.
+For a released version, select its tag on GitHub before inspecting the manifest. This keeps the requirements aligned with the code you install.
 
-## Hosted CI
+## HTTP framework support
 
-All hosted CI jobs use Go 1.27.x. The [quality-gates run on 11 October 2026](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed on Ubuntu, macOS, and Windows. It also passed the upstream framework runtime tests, race detector, 100% statement-coverage gate, and optional pgx mapper tests.
+Gin, Echo, and Fiber use their native contexts. Standard `net/http` handlers, Chi, Gorilla/mux, and Beego use `resp.HTTP(w, r)`. The [framework guide](/frameworks) shows how to connect each router.
 
-An earlier workflow run exposed a macOS runner issue with Go 1.22 and a coverage gap. CI now uses one Go version across all operating systems, and regression tests cover the previously unmeasured package paths. Go 1.22 remains the supported minimum for the core module and passed its local test run.
+The integration suite sends requests through real upstream routers. It checks status codes, JSON bodies, localization and cache headers, error confidentiality, `Location`, and empty 204 responses. The framework test manifest lists the versions selected for those checks.
 
-## Pinned framework versions
+Passing the suite establishes compatibility with the dependency versions used by that run. Applications should also exercise their handlers with the framework version they install.
 
-The integration suite sends requests through these upstream routers:
+## CI checks
 
-| Framework or router | Tested version |
+| Check | Scope |
 | --- | --- |
-| Gin | v1.12.0 |
-| Echo | v4.16.0 and v5.4.0 |
-| Fiber | v2.52.12 and v3.0.0 |
-| Chi | v5.3.2 |
-| Gorilla/mux | v1.8.1 |
-| Beego | v2.3.10 |
+| Core platform checks | Unit tests and go vet on Linux, macOS, and Windows |
+| Race detection | Concurrent behavior in the core and integration suites |
+| Statement coverage | A 100% combined coverage requirement for resp and internal runtime packages |
+| Framework runtime tests | Responses sent through upstream framework routers |
+| Optional mapper tests | Database-specific error mapping in separate modules |
 
-The tests check status codes, JSON bodies, localization and cache headers, error confidentiality, `Location`, and empty 204 responses. Passing the suite verifies only the pinned versions listed here.
+The [CI workflow](https://github.com/ZihxS/RespKit/blob/main/.github/workflows/ci.yml) defines the current toolchain and platform matrix. To inspect results, open [GitHub Actions](https://github.com/ZihxS/RespKit/actions/workflows/ci.yml), select the branch or tag, and open the run for the commit you want to use.
 
-Run the same checks with `make integration`. The framework test module and optional pgx mapper fetch upstream dependencies, so network access is required. These dependencies remain outside the core module.
+Run the checks locally using the [testing guide](/testing). Integration suites download upstream dependencies and require network access. These dependencies remain outside the core module.
 
-## Coverage scope
+## Interpreting results
 
-The 100% figure covers combined statement coverage for the root `resp` package and runtime packages under `internal/`. It does not mean every branch or path is covered. The framework tests and pgx mapper live in separate modules and are reported independently.
+Statement coverage measures executed statements in the packages included by the coverage command. It does not establish that every branch, input, or framework version has been exercised. Framework tests and optional mapper tests are reported separately because they live in separate modules.
+
+A cross-build confirms that binaries compile for a target platform. Runtime compatibility requires tests that actually execute on that platform.

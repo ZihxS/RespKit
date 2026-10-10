@@ -8,7 +8,7 @@ coverage.out
 reports/
 *.zip
 book/node_modules/
-book/.next/
+.next/
 book/.source/
 book/out/
 book/next-env.d.ts

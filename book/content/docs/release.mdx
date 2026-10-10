@@ -1,40 +1,44 @@
 ---
-title: "Releases"
-description: "Published versions, required CI checks, and the maintainer release process."
+title: "Release process"
+description: "Find published versions and follow the maintainer release process."
 ---
 
-## Current release
+## Find a release
 
-[RespKit v1.0.0](https://github.com/ZihxS/RespKit/releases/tag/v1.0.0) is published from commit `cae6b7684834cf09aebf8a5786f056e89c58e399`. All six jobs in its [quality-gates run](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed before publication.
+Published versions and release notes are listed on [GitHub Releases](https://github.com/ZihxS/RespKit/releases). The [changelog](https://github.com/ZihxS/RespKit/blob/main/CHANGELOG.md) summarizes changes to the library.
 
-Install the released core package from an existing Go module:
+Install the latest released core package from an existing Go module:
 
 ```bash
-go get github.com/ZihxS/RespKit/resp@v1.0.0
+go get github.com/ZihxS/RespKit/resp
 ```
 
-The root module supports Go 1.22 and later. Optional integrations are separate Go modules with their own dependency and Go requirements. A root release tag does not version a nested module; nested modules require tags that include their directory path.
+To install a specific release, append its tag to the package path with `@`. Check the selected version's module manifest for its Go requirements.
 
-## Repository protections
+Optional integrations are separate Go modules with their own dependencies and Go requirements. A root release tag does not version a nested module; nested modules require tags that include their directory path.
 
-Private Vulnerability Reporting and Dependabot alerts are enabled. Report suspected vulnerabilities through the [private reporting form](https://github.com/ZihxS/RespKit/security/advisories/new) or the contact listed in the [security guide](/security).
+## Requirements before publication
 
-The main branch requires pull requests and the following GitHub Actions checks:
+Submit release changes through a pull request and satisfy every check required by the main branch. The branch must be up to date before merging, and the same requirements apply to maintainers.
 
-| Required check | What it verifies |
+The release checks cover:
+
+| Area | What to verify |
 | --- | --- |
-| Core / Go 1.27.x / ubuntu-latest | Core tests and go vet on Linux |
-| Core / Go 1.27.x / macos-latest | Core tests and go vet on macOS |
-| Core / Go 1.27.x / windows-latest | Core tests and go vet on Windows |
-| Core race and coverage | Race detection and 100% combined statement coverage for resp and internal runtime packages |
-| Upstream framework runtime tests | Race-enabled tests against the pinned upstream routers |
-| Optional pgx mapper tests | Race-enabled tests for PostgreSQL error mapping |
+| Public API | Existing helpers work without configuration, and application data keys remain unchanged |
+| Error safety | Raw internal errors stay hidden by default, and public codes and statuses remain stable |
+| Core checks | Tests, go vet, race detection, and the combined statement-coverage requirement pass |
+| Platform support | Core tests execute on the platforms configured in CI |
+| HTTP frameworks | Runtime tests pass against the upstream versions selected by the integration suite |
+| Optional integrations | Mapper tests pass in their separate modules |
+| Documentation | Examples, internal links, changelog entries, and the static site build are current |
+| Repository security | Private reporting, Dependabot alerts, and main branch protections are enabled |
 
-Branches must be up to date with main before merging. These requirements also apply to administrators. Force pushes and deletion of main are disabled.
+Use the [CI workflow](https://github.com/ZihxS/RespKit/blob/main/.github/workflows/ci.yml) and [GitHub Actions](https://github.com/ZihxS/RespKit/actions/workflows/ci.yml) to inspect the current checks and their results. The [compatibility guide](/verification) explains the scope of those results.
 
-A passing CI run verifies the versions listed in the [verification report](/verification). Dependabot alerts remain a separate review responsibility; a successful test run does not establish that dependencies have no known vulnerabilities.
+Review open Dependabot alerts before publication and resolve or document any that affect the release. Report suspected vulnerabilities through the private channel described in the [security guide](/security).
 
-## Publish a future release
+## Publish a release
 
 1. Update the changelog and relevant documentation. Preserve the public API or describe breaking changes clearly.
 2. Run the checks in the [testing guide](/testing). Keep raw internal errors hidden and preserve the zero-configuration response helpers.
