@@ -1,6 +1,6 @@
 # Framework integration — single import
 
-These examples use the selected module path `github.com/ZihxS/RespKit`. They will resolve after the repository is published at that path.
+These examples use the module path `github.com/ZihxS/RespKit` from this repository.
 
 ## Standard net/http, Chi, and Gorilla/mux
 

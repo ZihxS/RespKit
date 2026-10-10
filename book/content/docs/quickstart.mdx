@@ -6,16 +6,16 @@ description: "Instalasi RespKit dan response HTTP pertama."
 
 Modul utama RespKit kompatibel dengan Go 1.22 atau yang lebih baru dan tidak menarik dependency framework ke aplikasi. Modul untuk pengujian framework upstream dan adapter pgx berdiri terpisah.
 
-Source project saat ini memakai module path:
+Repository source memakai module path:
 
 ```text
 github.com/ZihxS/RespKit
 ```
 
-Source belum dipublikasikan sebagai repository Go module, jadi `go get` belum tersedia. Setelah repository dirilis, pasang package utama dengan:
+Pasang package utama dari branch `main` dengan:
 
 ```bash
-go get github.com/ZihxS/RespKit/resp
+go get github.com/ZihxS/RespKit/resp@main
 ```
 
 ## Response pertama dengan net/http

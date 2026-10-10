@@ -94,4 +94,4 @@ Fiber v3 menggunakan `fiber.Ctx` dari package `github.com/gofiber/fiber/v3`.
 
 ## Verifikasi versi upstream
 
-Test terpisah di `integrations/framework-tests` menjalankan request melalui router upstream sungguhan. Test memeriksa status, JSON, `Content-Language`, `Vary`, `Content-Type`, kerahasiaan error, header `Location`, dan perilaku body kosong untuk 204. Test ini memverifikasi versi yang dipin pada [catatan verifikasi](/verification); versi framework lain tetap perlu diuji oleh aplikasi yang menggunakannya.
+Test terpisah di `integrations/framework-tests` mengirim request lewat router dari framework yang tercantum di [catatan verifikasi](/verification). Test memeriksa status, JSON, `Content-Language`, `Vary`, `Content-Type`, kerahasiaan error, header `Location`, dan body kosong untuk 204. Versi framework lain tetap perlu diuji oleh aplikasi yang menggunakannya.

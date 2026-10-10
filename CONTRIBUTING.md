@@ -1,6 +1,6 @@
 # Contributing to RespKit
 
-The goal is a small, stable, **zero-configuration** library, not an all-in-one web framework. Third-party framework dependencies must not be imported by the root module.
+RespKit is a small library for HTTP responses and error mapping. Keep third-party framework dependencies out of the root module.
 
 ## Where to contribute
 
@@ -21,4 +21,4 @@ The goal is a small, stable, **zero-configuration** library, not an all-in-one w
 6. Preserve existing exported API or explicitly explain the breaking change.
 7. Update `docs/ARCHITECTURE.md` and `docs/VERIFICATION.md` when changing components or test claims.
 
-CI has an independent genuine framework integration job. A locally green contract-double test is not equivalent to the real-framework job.
+CI runs a separate integration job against upstream framework routers. Tests using local interface doubles do not replace that job.

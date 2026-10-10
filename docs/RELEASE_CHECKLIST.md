@@ -8,9 +8,9 @@
 - [x] Execute race-enabled real integration tests against upstream Gin, Echo v4/v5, Fiber v2/v3, Chi, Gorilla/mux, and Beego v2 with Go 1.26+; see [`VERIFICATION.md`](VERIFICATION.md) for pinned versions and results.
 - [x] Select module path `github.com/ZihxS/RespKit` and use it throughout the repository.
 - [x] Configure CI with Go 1.27.x across Ubuntu, macOS, and Windows, plus race/coverage, upstream framework tests, and pgx mapper tests.
-- [ ] Confirm the hosted GitHub Actions matrix passes after this source is pushed to its repository.
+- [x] Confirm the latest GitHub Actions run passes on Ubuntu, macOS, and Windows ([run 38072373586](https://github.com/ZihxS/RespKit/actions/runs/38072373586)).
 - [x] Add maintainer security contact `m.saleh.solahudin@gmail.com` to [`SECURITY.md`](../SECURITY.md).
-- [ ] After the repository exists, enable GitHub Private Vulnerability Reporting and Dependabot alerts, then protect the default branch by requiring pull requests and CI checks.
+- [ ] Enable GitHub Private Vulnerability Reporting and Dependabot alerts, then protect the default branch with CI checks.
 - [ ] Create GitHub release tag `v1.0.0` only after checks above succeed.
 
-The packaged source is labeled v1.0.0 for requested API/versioning; it is **not** a published or upstream-certified release.
+The repository contains the v1.0.0 source, but no GitHub release has been published. A passing CI run covers only the pinned versions listed in `VERIFICATION.md`.

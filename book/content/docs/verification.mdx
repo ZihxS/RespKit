@@ -27,13 +27,13 @@ Build smoke cross-platform hanya mengompilasi test binary; command tersebut tida
 Run awal setelah dokumentasi dipush, `38070616402`, menemukan dua masalah:
 
 - Test Go 1.22 di `macos-latest` gagal saat menjalankan binary test dengan error `dyld` pada runner macOS 26 arm64. Matriks sekarang memakai Go 1.27.x saja pada Ubuntu, macOS, dan Windows.
-- Gate coverage di CI mencatat 98.4%. Test loader katalog JSON dan jalur kegagalan inisialisasi engine ditambahkan agar gate menghitung semua package target dan tetap mengharuskan 100.0% statement coverage.
+- Gate coverage CI mencatat 98.4%. Test loader katalog JSON dan jalur kegagalan inisialisasi engine ditambahkan agar gate menghitung semua package target dan tetap mengharuskan 100.0% statement coverage.
 
-Go 1.22 tetap menjadi versi minimum yang didukung module utama dan sudah lulus test lokal. CI hosted memakai Go 1.27.x saja. Perubahan ini hanya dinyatakan lulus setelah workflow CI terbaru selesai dengan status sukses; hasil terbarunya akan dicatat pada checklist perilisan.
+Go 1.22 tetap menjadi versi minimum yang didukung module utama dan sudah lulus test lokal. Semua job CI memakai Go 1.27.x. [Run 38072373586 pada 11 Oktober 2026](https://github.com/ZihxS/RespKit/actions/runs/38072373586) lulus untuk Ubuntu, macOS, Windows, test framework upstream, race detector, coverage 100%, dan mapper pgx.
 
 ## Versi framework upstream
 
-Module di `integrations/framework-tests` mengunci versi berikut dan mengirim request melalui router upstream sungguhan:
+Module di `integrations/framework-tests` mengunci versi berikut dan mengirim request melalui router dari masing-masing framework:
 
 | Framework/router | Versi |
 | --- | ---: |

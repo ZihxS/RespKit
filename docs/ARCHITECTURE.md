@@ -1,6 +1,6 @@
-# RespKit v1.0.0 — Architecture
+# RespKit architecture
 
-## Non-negotiable contracts
+## Public API behavior
 
 - **Import and use:** `resp.OK(ctx, data)` and `resp.Fail(ctx, err)` need no registration or setup.
 - **Default schema:** envelope with `snake_case` RespKit-owned keys; application `data` keys are never rewritten.
@@ -24,7 +24,7 @@
                 + framework detection classification       matching        body templates
                                              |
                                         internal/diagnostics
-                                          safe output for AI/CLI
+                                          structured error metadata
 ```
 
 The `internal` tree is an implementation detail: integrations and application code must use exported `resp` APIs only. Internal packages are allowed to import the standard library but never import `resp`, avoiding cycles.
@@ -56,7 +56,7 @@ internal/
   resolver/       # typed errors, builtins, mapper ordering, SQLSTATE
   i18n/           # embedded per-locale JSON catalogs, matcher.go, translate.go
   formatter/      # envelope, response field naming, RFC 9457
-  diagnostics/    # AI-/CLI-readable JSON
+  diagnostics/    # structured JSON for CLI consumers
 cmd/respkit/      # doctor, catalog, explain, version
 examples/nethttp/ # runnable real HTTP example
 integrations/     # separate Go modules for integration tests and optional adapters
