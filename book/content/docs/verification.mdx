@@ -7,12 +7,12 @@ Dokumen ini mencatat test yang benar-benar dijalankan serta batas klaim kompatib
 
 ## Hasil lokal
 
-Run lokal terakhir yang tercatat dilakukan pada 10 Oktober 2026, dengan Go 1.27.1 di macOS arm64. Module utama masih menargetkan Go 1.22+. Framework tests memerlukan Go 1.26+, sedangkan adapter pgx opsional memerlukan Go 1.25+.
+Run lokal terakhir yang tercatat dilakukan pada 10 Oktober 2026, dengan Go 1.27.1 di macOS arm64. Module utama masih menargetkan Go 1.22+. Semua job hosted CI menggunakan satu toolchain, Go 1.27.x, agar setiap platform diuji dengan versi Go yang sama. Framework tests dan adapter pgx juga dijalankan dengan Go 1.27.x.
 
 | Pemeriksaan | Hasil lokal yang tercatat | Perintah |
 | --- | --- | --- |
 | Test module utama | PASS | `make test` |
-| Test dengan versi minimum Go | PASS — Go 1.22.12 | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
+| Test dengan versi minimum Go | PASS — Go 1.22.12, diuji lokal | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
 | Race detector | PASS | `make race` |
 | Analisis statis | PASS | `make vet` |
 | Statement coverage gabungan `resp` dan `internal/...` | PASS — 100.0% sebelum perbaikan coverage CI | `make coverage` |
@@ -24,12 +24,12 @@ Build smoke cross-platform hanya mengompilasi test binary; command tersebut tida
 
 ## CI GitHub
 
-Run awal setelah dokumentasi dipush, `38070616402`, menemukan dua masalah yang sedang diperbaiki:
+Run awal setelah dokumentasi dipush, `38070616402`, menemukan dua masalah:
 
-- Test Go 1.22 di `macos-latest` gagal saat menjalankan binary test dengan error `dyld` pada runner macOS 26 arm64. Matriks dipindahkan untuk menjalankan Go 1.22 pada runner `macos-15-intel`; Go 1.27 tetap berjalan di `macos-latest`.
+- Test Go 1.22 di `macos-latest` gagal saat menjalankan binary test dengan error `dyld` pada runner macOS 26 arm64. Matriks sekarang memakai Go 1.27.x saja pada Ubuntu, macOS, dan Windows.
 - Gate coverage di CI mencatat 98.4%. Test loader katalog JSON dan jalur kegagalan inisialisasi engine ditambahkan agar gate menghitung semua package target dan tetap mengharuskan 100.0% statement coverage.
 
-Perubahan ini hanya dinyatakan lulus setelah workflow CI terbaru selesai dengan status sukses. Hasil terbaru dicatat pada checklist perilisan.
+Go 1.22 tetap menjadi versi minimum yang didukung module utama dan sudah lulus test lokal. CI hosted memakai Go 1.27.x saja. Perubahan ini hanya dinyatakan lulus setelah workflow CI terbaru selesai dengan status sukses; hasil terbarunya akan dicatat pada checklist perilisan.
 
 ## Versi framework upstream
 

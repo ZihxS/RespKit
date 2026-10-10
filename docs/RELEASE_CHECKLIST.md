@@ -7,7 +7,7 @@
 - [x] Pass Go unit, race, vet, and 100% statement coverage gate for `resp` + `internal/...`.
 - [x] Execute race-enabled real integration tests against upstream Gin, Echo v4/v5, Fiber v2/v3, Chi, Gorilla/mux, and Beego v2 with Go 1.26+; see [`VERIFICATION.md`](VERIFICATION.md) for pinned versions and results.
 - [x] Select module path `github.com/ZihxS/RespKit` and use it throughout the repository.
-- [x] Configure CI matrix: root tests and vet on Go 1.22/1.27 for Ubuntu, macOS, and Windows; race/coverage on Linux; framework and pgx tests on their minimum Go versions.
+- [x] Configure CI with Go 1.27.x across Ubuntu, macOS, and Windows, plus race/coverage, upstream framework tests, and pgx mapper tests.
 - [ ] Confirm the hosted GitHub Actions matrix passes after this source is pushed to its repository.
 - [x] Add maintainer security contact `m.saleh.solahudin@gmail.com` to [`SECURITY.md`](../SECURITY.md).
 - [ ] After the repository exists, enable GitHub Private Vulnerability Reporting and Dependabot alerts, then protect the default branch by requiring pull requests and CI checks.

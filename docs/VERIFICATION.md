@@ -4,7 +4,7 @@
 
 Run date: 2026-10-10. Environment: Go 1.27.1, macOS/darwin arm64. The root module remains compatible with Go 1.22; the framework-test module under `integrations/framework-tests` requires Go 1.26+.
 
-The CI workflow tests the root module on Go 1.22 and 1.27 across Ubuntu, macOS, and Windows. It also runs root race/coverage checks on Linux, upstream framework tests on Go 1.26, and pgx mapper tests on Go 1.25. The hosted matrix has not run yet because this workspace has no Git remote and `ZihxS/RespKit` is not currently available as a GitHub repository.
+All hosted CI jobs use Go 1.27.x. The root module still declares Go 1.22 compatibility, and its tests passed locally on Go 1.22.12. CI runs root tests and vet across Ubuntu, macOS, and Windows, plus root race/coverage checks and upstream framework and pgx mapper tests.
 
 Local Linux/amd64 and Windows/amd64 smoke commands compiled all package and test binaries from the macOS/arm64 workspace. The `-exec=true` flag means those cross-platform commands did not execute the test binaries; hosted CI must confirm runtime behavior on each operating system.
 
