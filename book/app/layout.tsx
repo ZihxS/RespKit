@@ -1,6 +1,7 @@
 import { RootProvider } from "fumadocs-ui/provider/next";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { brandDescription, brandName, brandTitle } from "@/lib/branding";
 import "./global.css";
 
 const siteURL = "https://zihxs.github.io/RespKit";
@@ -8,15 +9,15 @@ const siteURL = "https://zihxs.github.io/RespKit";
 export const metadata: Metadata = {
   metadataBase: new URL(siteURL),
   title: {
-    default: "RespKit Documentation",
-    template: "%s | RespKit",
+    default: brandTitle,
+    template: `%s | ${brandName}`,
   },
-  description: "Consistent HTTP responses and safe error handling for Go applications.",
+  description: brandDescription,
   openGraph: {
-    title: "RespKit Documentation",
-    description: "Consistent HTTP responses and safe error handling for Go applications.",
+    title: brandTitle,
+    description: brandDescription,
     url: siteURL,
-    siteName: "RespKit",
+    siteName: brandName,
     type: "website",
   },
 };

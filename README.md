@@ -1,11 +1,7 @@
-<h1 align="center">RespKit</h1>
+<h1 align="center">RespKit — Consistent HTTP Responses for Go</h1>
 
 <p align="center">
   <img src="assets/respkit.png" alt="RespKit" width="560">
-</p>
-
-<p align="center">
-  Consistent HTTP responses and safe error handling for Go applications.
 </p>
 
 RespKit gives HTTP handlers a shared response format, maps Go errors to stable status codes,
@@ -179,6 +175,9 @@ RespKit is available under the [MIT License](LICENSE).
 Thanks to everyone who contributes to RespKit. See the
 [contributors graph](https://github.com/ZihxS/RespKit/graphs/contributors) for the current
 list.
+
+To contribute, read the [contribution guide](CONTRIBUTING.md) or choose a task from the
+[optional integrations roadmap](https://github.com/ZihxS/RespKit/issues/4).
 
 ## Star History
 

@@ -4,6 +4,10 @@ RespKit provides consistent HTTP responses and error mapping for Go applications
 module supports Go 1.22 and later and has no third-party runtime dependencies. Keep framework
 and database dependencies in separate modules under integrations/.
 
+The [optional integrations roadmap](https://github.com/ZihxS/RespKit/issues/4) lists open
+tasks for databases, libraries, and HTTP frameworks. Each task includes its scope and
+acceptance criteria. The contributor-guide task is labeled good first issue.
+
 ## Project areas
 
 - `internal/transport`: framework detection and adapters. Gin, Echo, and Fiber use native
