@@ -1,0 +1,15 @@
+{
+  "BAD_REQUEST": "Permintaan tidak valid.",
+  "UNAUTHORIZED": "Autentikasi diperlukan.",
+  "FORBIDDEN": "Anda tidak memiliki izin untuk mengakses resource ini.",
+  "RESOURCE_NOT_FOUND": "Data tidak ditemukan.",
+  "RESOURCE_CONFLICT": "Terjadi konflik dengan data yang ada.",
+  "RESOURCE_ALREADY_EXISTS": "Data sudah terdaftar.",
+  "VALIDATION_FAILED": "Data yang dikirim tidak valid.",
+  "RATE_LIMITED": "Terlalu banyak permintaan. Coba lagi nanti.",
+  "SERVICE_UNAVAILABLE": "Layanan sementara tidak tersedia.",
+  "INTERNAL_ERROR": "Terjadi kesalahan pada server.",
+  "INVALID_EMAIL": "Format email tidak valid.",
+  "FIELD_REQUIRED": "Field {field} wajib diisi.",
+  "MIN_LENGTH": "Field {field} minimal {min} karakter."
+}

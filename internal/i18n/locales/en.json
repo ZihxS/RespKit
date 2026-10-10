@@ -1,0 +1,15 @@
+{
+  "BAD_REQUEST": "The request is invalid.",
+  "UNAUTHORIZED": "Authentication is required.",
+  "FORBIDDEN": "You do not have permission to access this resource.",
+  "RESOURCE_NOT_FOUND": "The requested resource was not found.",
+  "RESOURCE_CONFLICT": "The request conflicts with the current resource state.",
+  "RESOURCE_ALREADY_EXISTS": "The resource already exists.",
+  "VALIDATION_FAILED": "The submitted data is invalid.",
+  "RATE_LIMITED": "Too many requests. Try again later.",
+  "SERVICE_UNAVAILABLE": "The service is temporarily unavailable.",
+  "INTERNAL_ERROR": "An internal server error occurred.",
+  "INVALID_EMAIL": "The email address is invalid.",
+  "FIELD_REQUIRED": "The {field} field is required.",
+  "MIN_LENGTH": "The {field} field must be at least {min} characters."
+}
