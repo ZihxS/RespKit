@@ -1,116 +1,125 @@
-# Framework integration — single import
+# HTTP framework integration
 
-These examples use the module path `github.com/ZihxS/RespKit` from this repository.
+RespKit uses one public response package across Go HTTP frameworks. The core module does not import framework packages, so applications install only the framework they already use.
 
-## Standard net/http, Chi, and Gorilla/mux
+Gin, Echo v4/v5, and Fiber v2/v3 accept their native context values. Standard `net/http`, Chi, Gorilla/mux, and Beego v2 handlers use `resp.HTTP` to pair the response writer with the request.
 
-Chi and Gorilla/mux use ordinary `net/http` handlers. Pass the handler's writer and request through `resp.HTTP`:
+## Standard `net/http`, Chi, and Gorilla/mux
+
+Chi and Gorilla/mux register regular `net/http` handlers. This example works with either router:
 
 ```go
+package handlers
+
 import (
-    "net/http"
-    "github.com/ZihxS/RespKit/resp"
+	"log"
+	"net/http"
+
+	"github.com/ZihxS/RespKit/resp"
 )
-func handler(w http.ResponseWriter,r *http.Request) {
-    if err:=resp.OK(resp.HTTP(w,r),map[string]any{"user_id":7});err!=nil {
-        // Write failure has already occurred; log it, don't write again.
-    }
+
+func GetUser(w http.ResponseWriter, r *http.Request) {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(resp.HTTP(w, r), user); err != nil {
+		log.Printf("write response: %v", err)
+	}
 }
 ```
 
-The same handler body works when registered with Chi or Gorilla/mux:
+Register the handler with Chi or Gorilla/mux:
 
 ```go
-router.Get("/users", Handler) // Chi
-router.HandleFunc("/users", Handler).Methods(http.MethodGet) // Gorilla/mux
+router.Get("/users", handlers.GetUser) // Chi
+router.HandleFunc("/users", handlers.GetUser).Methods(http.MethodGet) // Gorilla/mux
 ```
 
 ## Beego v2
 
-Beego's context exposes the underlying HTTP response writer and request. Wrap those values with `resp.HTTP`:
+Beego exposes the underlying response writer and request through its context:
 
 ```go
-import (
-    beecontext "github.com/beego/beego/v2/server/web/context"
-    "github.com/ZihxS/RespKit/resp"
-)
-
-func handler(c *beecontext.Context) {
-    if err := resp.OK(resp.HTTP(c.ResponseWriter, c.Request), map[string]any{"user_id": 7}); err != nil {
-        // Write failure has already occurred; log it, don't write again.
-    }
+func GetUser(c *beecontext.Context) {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(resp.HTTP(c.ResponseWriter, c.Request), user); err != nil {
+		log.Printf("write response: %v", err)
+	}
 }
 ```
+
+Import the context type from `github.com/beego/beego/v2/server/web/context`.
 
 ## Gin
 
+Pass the Gin context directly. Return helper errors to Gin's error list for application middleware to inspect:
+
 ```go
-import (
-    "github.com/gin-gonic/gin"
-    "github.com/ZihxS/RespKit/resp"
-)
-func handler(c *gin.Context) {
-    if err:=resp.OK(c,map[string]any{"user_id":7});err!=nil { _=c.Error(err) }
+func GetUser(c *gin.Context) {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(c, user); err != nil {
+		_ = c.Error(err)
+	}
 }
 ```
 
-## Echo v4
+## Echo v4 and v5
+
+Return helper errors so Echo's HTTP error handler can process them. Echo v4 uses `echo.Context`:
 
 ```go
-import (
-    "github.com/labstack/echo/v4"
-    "github.com/ZihxS/RespKit/resp"
-)
-func handler(c echo.Context) error {
-    return resp.Fail(c,resp.ErrNotFound)
+func GetUserV4(c echo.Context) error {
+	return resp.Fail(c, resp.ErrNotFound)
 }
 ```
 
-## Echo v5
+Echo v5 uses `*echo.Context`:
 
 ```go
-import (
-    "github.com/labstack/echo/v5"
-    "github.com/ZihxS/RespKit/resp"
-)
-func handler(c *echo.Context) error {
-    return resp.Fail(c, resp.ErrNotFound)
+func GetUserV5(c *echo.Context) error {
+	return resp.Fail(c, resp.ErrNotFound)
 }
 ```
 
-## Fiber v2
+## Fiber v2 and v3
+
+Return the helper error to Fiber. Fiber v2 uses `*fiber.Ctx`:
 
 ```go
-import (
-    "github.com/gofiber/fiber/v2"
-    "github.com/ZihxS/RespKit/resp"
-)
-func handler(c *fiber.Ctx) error {
-    return resp.OK(c,map[string]any{"user_id":7})
+func GetUserV2(c *fiber.Ctx) error {
+	return resp.OK(c, map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	})
 }
 ```
 
-## Fiber v3
+Fiber v3 uses `fiber.Ctx`:
 
 ```go
-import (
-    "github.com/gofiber/fiber/v3"
-    "github.com/ZihxS/RespKit/resp"
-)
-func handler(c fiber.Ctx) error {
-    return resp.OK(c,map[string]any{"user_id":7})
+func GetUserV3(c fiber.Ctx) error {
+	return resp.OK(c, map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	})
 }
 ```
 
-## Important compatibility details
+## Compatibility details
 
-- Gin adapter detects `JSON(int, any)`, `GetHeader(string)`, `Header(string,string)`; the built-in `c.JSON` is used to send the pre-encoded payload.
-- Echo adapter detects `Blob(int,string,[]byte)` and `Request() *http.Request`; the Echo response headers are resolved through `Response().Header()`.
-- Fiber adapter detects `Get(string,...string) string`, `Set(string,string)`, `Send([]byte) error`, plus a callable `Status(int)` method. Fiber v2/v3 Status return types differ, so just this operation is reflected.
-- Chi, Gorilla/mux, and Beego v2 use the standard `net/http` response writer and request through `resp.HTTP`; the core package has no framework dependency for them.
-- None of the above frameworks is linked into RespKit core. Their version compatibility must be checked against the version used by the consumer.
-- Framework-specific middleware which writes a response first can prevent helpers from setting headers or status. Place RespKit at the terminal response point.
+- Gin writes the pre-encoded payload through `JSON(int, any)` and provides `GetHeader` and `Header` methods.
+- Echo writes through `Blob(int, string, []byte)`, reads the request with `Request()`, and uses the response header map.
+- Fiber provides `Get`, `Set`, and `Send`. RespKit reflects on `Status(int)` because the return type differs between Fiber v2 and v3.
+- Chi, Gorilla/mux, and Beego use the standard HTTP writer and request; the core module has no dependency on those frameworks.
+- Middleware that has already written a status or body can prevent RespKit from setting the response. Call a response helper at the end of the handler.
 
-### How to verify real-framework compatibility before publishing
+## Run the upstream tests
 
-The independent `integrations/framework-tests` Go module runs end-to-end requests against pinned upstream framework versions, with a separate folder per framework/version and shared assertions in `internal/testkit`. It verifies status, JSON, `Content-Language`, `Vary`, `Content-Type`, error confidentiality, `Location`, and 204 behavior for every supported integration family. Contract-double tests in `resp/framework_test.go` are necessary but not sufficient.
+`integrations/framework-tests` contains runtime tests against the actual upstream routers. They check status codes, response JSON, localization headers, error confidentiality, `Location`, and 204 responses. See [VERIFICATION.md](VERIFICATION.md) for the pinned versions and results. Local interface doubles do not replace these integration tests.

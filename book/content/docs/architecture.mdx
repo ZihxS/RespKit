@@ -1,71 +1,96 @@
 ---
-title: Arsitektur
-description: Batas package, alur response, dan aturan pengembangan RespKit.
+title: "Architecture"
+description: "Package boundaries, response flow, and contribution guidelines."
 ---
 
-## Kontrak utama
+## Core contracts
 
-- `resp.OK(ctx, data)` dan `resp.Fail(ctx, err)` dapat langsung digunakan tanpa registrasi atau setup.
-- Envelope default memakai key milik RespKit dalam `snake_case`; key aplikasi di dalam `data` tidak diubah.
-- Penamaan, katalog bahasa tambahan, mapper error, RFC 9457, dan detail debug lokal bersifat opt-in.
-- Pesan error internal tidak boleh masuk ke body response biasa. `WithExposeInternalErrors(true)` tidak aman untuk aplikasi yang dapat diakses publik.
-- Modul utama netral terhadap framework, tidak mengimpor Gin, Echo, Fiber, atau framework lain. `net/http`, Chi, Gorilla/mux, dan Beego v2 memakai `resp.HTTP(w, r)`.
-- Modul utama kompatibel dengan Go 1.22+ dan hanya bergantung pada standard library.
+- `resp.OK`, `resp.Created`, `resp.NoContent`, `resp.Fail`, and `resp.NotFound` work without registration or setup.
+- The default envelope uses `snake_case` for RespKit-owned keys. Application data keeps its original keys.
+- Custom naming, extra language catalogs, error mappers, Problem Details, and debug messages are opt-in.
+- Raw internal error messages stay out of ordinary response bodies. `WithExposeInternalErrors(true)` is unsafe for public services.
+- The core module does not import Gin, Echo, Fiber, or other HTTP frameworks. `net/http`, Chi, Gorilla/mux, and Beego v2 use `resp.HTTP(w, r)`.
+- The core module supports Go 1.22 and later and depends only on the standard library.
 
-## Dependency graph
+## Package boundaries
 
-```text
-handler aplikasi
-      |
-      v
-resp/ public facade
-  |       |       |        |
-  v       v       v        v
-transport resolver i18n formatter
-              |
-              v
-          diagnostics
-```
+<figure className="not-prose my-8 rounded-xl border border-fd-border bg-fd-card p-5 sm:p-6">
+  <div className="flex flex-col items-center gap-3">
+    <div className="w-full max-w-sm rounded-lg border border-fd-border bg-fd-background px-4 py-3 text-center font-medium">
+      Application handler
+    </div>
+    <span aria-hidden="true" className="text-xl text-fd-muted-foreground">↓</span>
+    <div className="w-full max-w-sm rounded-lg border border-fd-primary/30 bg-fd-primary/10 px-4 py-3 text-center">
+      <div className="font-semibold">resp</div>
+      <div className="mt-1 text-sm text-fd-muted-foreground">Public API and engine</div>
+    </div>
+    <span aria-hidden="true" className="text-xl text-fd-muted-foreground">↓</span>
+    <div className="w-full max-w-sm rounded-lg border border-fd-border p-3">
+      <div className="mb-3 text-center text-sm font-medium text-fd-muted-foreground">
+        Internal packages
+      </div>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0 text-center text-sm">
+        <li className="rounded-md bg-fd-background px-3 py-2">Transport</li>
+        <li className="rounded-md bg-fd-background px-3 py-2">Error resolver</li>
+        <li className="rounded-md bg-fd-background px-3 py-2">Localization</li>
+        <li className="rounded-md bg-fd-background px-3 py-2">Response formatter</li>
+        <li className="rounded-md bg-fd-background px-3 py-2">Diagnostics</li>
+      </ul>
+    </div>
+  </div>
+  <figcaption className="mt-4 text-center text-sm text-fd-muted-foreground">
+    Applications call resp, which depends on the internal packages.
+  </figcaption>
+</figure>
 
-Package di bawah `internal/` adalah detail implementasi. Aplikasi memakai API yang diekspor dari `resp`. Package internal boleh mengimpor standard library, tetapi tidak mengimpor package `resp` sehingga dependency tetap satu arah.
+| Package | Responsibility |
+| --- | --- |
+| `resp` | Public helpers, configuration, and the response engine. |
+| `internal/transport` | Detect framework contexts and write HTTP responses. |
+| `internal/resolver` | Map typed errors to public codes and HTTP statuses. |
+| `internal/i18n` | Select locales and look up translated messages. |
+| `internal/formatter` | Build envelopes, apply key naming, and format Problem Details. |
+| `internal/diagnostics` | Describe error classifications for inspection and the CLI. |
 
-## Alur response
+Applications and integrations use the exported API in `resp`. Packages under `internal/` are implementation details. They may import the standard library, but they do not import `resp`, which keeps dependencies flowing in one direction.
 
-1. Helper package-level atau method pada `Engine` menerima response.
-2. Resolver memeriksa error bertipe melalui `errors.Is` dan `errors.As`. Error yang tidak dikenal mendapat status 500 dan pesan umum.
-3. Transport memilih adapter framework melalui pemeriksaan interface. Reflection hanya dipakai untuk perbedaan bentuk method framework tertentu.
-4. `Accept-Language` atau override response memilih katalog statis yang sesuai. Kode publik tidak berubah berdasarkan locale.
-5. Formatter membuat envelope atau representasi RFC 9457 tanpa mengubah key dalam `data`.
-6. JSON di-encode sebelum status ditulis. Response 204 dan request HEAD tidak memiliki body.
-7. CLI diagnostics hanya mengeluarkan metadata dan tidak mencetak pesan error aplikasi mentah.
+## Response flow
+
+1. A package-level helper or an immutable `Engine` receives the response request.
+2. The resolver classifies errors with `errors.Is` and `errors.As`. Unknown errors receive status 500 and a generic public message.
+3. Transport selects a framework adapter using its supported interfaces. Reflection is limited to framework methods with incompatible signatures.
+4. The request's `Accept-Language` header or a response option selects a translation catalog. Public error codes remain the same across locales.
+5. The formatter creates an envelope or RFC 9457 error body without changing application data keys.
+6. RespKit encodes the JSON before writing the status. Responses to `HEAD` requests and status 204 have no body.
+7. CLI diagnostics expose classification metadata without printing raw application error messages.
 
 ## Source layout
 
 ```text
-resp/                  API publik, engine, helper, dan facade
-internal/transport/    adapter framework dan deteksi context
-internal/resolver/     klasifikasi error dan SQLSTATE
-internal/i18n/         katalog JSON yang di-embed dan pencocokan bahasa
-internal/formatter/    envelope, penamaan key, dan RFC 9457
-internal/diagnostics/  metadata error untuk CLI
-cmd/respkit/           doctor, catalog, explain, dan version
-examples/nethttp/      contoh runnable untuk net/http
-integrations/          module pengujian dan adapter opsional terpisah
-book/                  source dokumentasi dan website statis
+resp/                  Public API, engine, helpers, and facade
+internal/transport/    Framework adapters and context detection
+internal/resolver/     Error classification and SQLSTATE mapping
+internal/i18n/         Embedded JSON catalogs and language matching
+internal/formatter/    Envelopes, naming options, and Problem Details
+internal/diagnostics/  Error metadata for CLI consumers
+cmd/respkit/           doctor, catalog, explain, and version commands
+examples/nethttp/      Runnable net/http example
+integrations/          Framework tests and optional adapters
+book/                  Documentation source and static website
 ```
 
-## Aturan untuk kontribusi
+## Contribution guidelines
 
-- Adapter framework berada di `internal/transport/`; package `resp` tidak mengimpor framework eksternal.
-- Katalog bahasa disimpan sebagai file JSON terpisah di `internal/i18n/locales/`.
-- Tambahkan klasifikasi error hanya jika pemetaannya deterministik dan aman. Untuk error khusus dependency, gunakan adapter opsional.
-- Uji wrapped error, input tidak valid, fallback bahasa, dan kerahasiaan pesan.
-- `resp.Configure` mengganti engine default secara atomik. Jangan mutasi map atau slice engine yang sudah dibuat.
-- Pin versi framework di module integration dan jalankan test terhadap router upstream sebenarnya.
+- Add framework support under `internal/transport/`; do not import frameworks from the `resp` package.
+- Store built-in translations as separate JSON files under `internal/i18n/locales/`.
+- Add error mappings only when their meaning is deterministic and safe. Use a separate optional module for dependency-specific errors.
+- Cover wrapped errors, invalid input, locale fallback, and error confidentiality in tests.
+- `resp.Configure` replaces the default engine atomically. Do not mutate an existing engine's maps or slices.
+- Pin framework versions in the integration module and test against the upstream routers.
 
-## Batas yang diketahui
+## Known limits
 
-- Test framework upstream berjalan dari `integrations/framework-tests`; adapter production opsional berada di module terpisah.
-- Adapter Fiber memakai satu pemanggilan refleksi untuk `Status(int)` karena return type Fiber v2 dan v3 berbeda.
-- Context framework hanya berlaku untuk satu request, dan penulisan response hanya dapat dilakukan satu kali. RespKit tidak dapat membatalkan status yang sudah dikirim.
-- Gate `100.0%` mengukur statement coverage gabungan package `resp` dan `internal/...`; gate itu tidak menyatakan branch coverage penuh atau menguji semua versi dependency.
+- Framework runtime tests live in `integrations/framework-tests`; production adapters live in separate optional modules.
+- Fiber's `Status(int)` call uses reflection because Fiber v2 and v3 return different types from that method.
+- A framework context is request-scoped, and a response can be written only once. RespKit cannot change a status after it has been sent.
+- The 100% gate measures combined statement coverage for `resp` and `internal/...`. It does not imply full branch coverage or test every dependency version.

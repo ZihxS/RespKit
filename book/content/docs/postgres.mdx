@@ -1,12 +1,25 @@
 ---
-title: "PostgreSQL dan pgx"
-description: "Pemetaan SQLSTATE PostgreSQL dan adapter pgx."
+title: "Optional integrations"
+description: "Add dependency-specific error mapping without expanding the core module."
 ---
-Modul utama mengenali SQLSTATE `23505` melalui interface `SQLState() string` tanpa mengimpor driver PostgreSQL. Kondisi itu dipetakan ke `RESOURCE_ALREADY_EXISTS` (409). SQLSTATE lain dibiarkan sebagai error internal secara default karena arti HTTP-nya bergantung pada domain aplikasi.
 
-## Adapter opsional pgx/v5
+RespKit keeps framework and database dependencies out of its core module. Optional integrations live in separate Go modules and are imported only by applications that need them. They provide explicit mappings for typed errors from a particular framework, database, or driver.
 
-Adapter ada di module terpisah dan memakai pgx/v5. Ia tidak membuka koneksi atau mengubah konfigurasi global RespKit.
+## Available database adapter: pgx
+
+The pgx adapter maps PostgreSQL errors using `pgx/v5`. It does not open database connections or change RespKit's global configuration.
+
+The core module already recognizes PostgreSQL SQLSTATE `23505` through the `SQLState() string` interface, without importing a database driver. The optional adapter maps additional SQLSTATEs and records the pgx mapper in diagnostics.
+
+Install the adapter in addition to the core package:
+
+```bash
+go get github.com/ZihxS/RespKit/integrations/pgx
+```
+
+The adapter depends on pgx/v5 `v5.11.0` and requires Go 1.25. This dependency applies only to the optional module; the core module supports Go 1.22 and later.
+
+Configure the adapter on an engine:
 
 ```go
 import (
@@ -22,21 +35,23 @@ if err != nil {
 return api.Fail(ctx, dbErr)
 ```
 
-Adapter ini memakai `pgx/v5 v5.11.0` dan memerlukan Go 1.25. Dependency tersebut terpisah dari modul utama yang mendukung Go 1.22 atau lebih baru.
+## PostgreSQL SQLSTATE mappings
 
-## SQLSTATE yang dipetakan
-
-| SQLSTATE | Makna umum | Kode RespKit | HTTP |
+| SQLSTATE | Common condition | RespKit code | HTTP status |
 | --- | --- | --- | ---: |
-| `22003`, `22007`, `22008`, `22018`, `22021`, `22023`, `22P02`, `22P03` | Nilai input numeric, waktu, teks, atau biner tidak valid | `BAD_REQUEST` | 400 |
-| `22001` | Nilai teks melampaui panjang kolom | `VALIDATION_FAILED` | 422 |
-| `23502`, `23503`, `23514` | Not-null, foreign key, atau check constraint | `VALIDATION_FAILED` | 422 |
-| `23505` | Unique constraint | `RESOURCE_ALREADY_EXISTS` | 409 |
-| `23000`, `23001`, `23P01` | Konflik integritas, restrict, atau exclusion | `RESOURCE_CONFLICT` | 409 |
-| `40000`, `40001`, `40P01` | Rollback, serialization failure, atau deadlock | `RESOURCE_CONFLICT` | 409 |
-| `08000`, `08001`, `08003`, `08004`, `08006`, `08007` | Koneksi database gagal | `SERVICE_UNAVAILABLE` | 503 |
-| `53000`, `53100`, `53200`, `53300`, `53400` | Resource server tidak cukup atau batas konfigurasi tercapai | `SERVICE_UNAVAILABLE` | 503 |
-| `57P01`, `57P02`, `57P03` | Database shutdown atau belum dapat menerima koneksi | `SERVICE_UNAVAILABLE` | 503 |
-| `55P03` | Lock tidak tersedia | `RESOURCE_CONFLICT` | 409 |
+| `22003`, `22007`, `22008`, `22018`, `22021`, `22023`, `22P02`, `22P03` | Invalid numeric, date/time, text, or binary input | `BAD_REQUEST` | 400 |
+| `22001` | Text value exceeds the column length | `VALIDATION_FAILED` | 422 |
+| `23502`, `23503`, `23514` | Not-null, foreign-key, or check constraint violation | `VALIDATION_FAILED` | 422 |
+| `23505` | Unique constraint violation | `RESOURCE_ALREADY_EXISTS` | 409 |
+| `23000`, `23001`, `23P01` | Integrity, restrict, or exclusion conflict | `RESOURCE_CONFLICT` | 409 |
+| `40000`, `40001`, `40P01` | Transaction rollback, serialization failure, or deadlock | `RESOURCE_CONFLICT` | 409 |
+| `08000`, `08001`, `08003`, `08004`, `08006`, `08007` | Database connection failure | `SERVICE_UNAVAILABLE` | 503 |
+| `53000`, `53100`, `53200`, `53300`, `53400` | Insufficient resources or a server configuration limit | `SERVICE_UNAVAILABLE` | 503 |
+| `57P01`, `57P02`, `57P03` | Database shutdown or not accepting connections | `SERVICE_UNAVAILABLE` | 503 |
+| `55P03` | Lock not available | `RESOURCE_CONFLICT` | 409 |
 
-Semua kode PostgreSQL lain dipetakan secara konservatif ke `INTERNAL_ERROR` (500). Pesan mentah PostgreSQL tidak dikirim ke client; SQLSTATE aman tetap tersedia pada diagnostics.
+Other current or future PostgreSQL codes map conservatively to `INTERNAL_ERROR` (500). This avoids returning a client error for database bugs, authentication or configuration problems, protocol failures, or internal conditions. The raw PostgreSQL message is never included in the client response; SQLSTATE remains available in diagnostics.
+
+## Adding another integration
+
+New integrations should have a clear source error type and deterministic mappings. Keep third-party dependencies in a separate module, make the integration opt-in, and test wrapped errors and fallback behavior. Do not classify errors based only on their message text.

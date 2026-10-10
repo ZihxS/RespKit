@@ -1,27 +1,29 @@
 ---
-title: "Bahasa dan terjemahan"
-description: "Katalog JSON, Accept-Language, dan pesan terjemahan."
+title: "Localization"
+description: "JSON message catalogs, Accept-Language, and translated responses."
 ---
-Bahasa default adalah `id`. Katalog bawaan `id` dan `en` di-embed ke binary dari file JSON; aplikasi tidak perlu membaca file locale dari disk saat runtime.
 
-RespKit memeriksa `Accept-Language` pada setiap request, mendukung bahasa dengan region seperti `id-ID`, lalu memilih katalog yang tersedia. Pesan untuk satu response memakai satu locale efektif agar terjemahan tidak tercampur. Header `Content-Language` menunjukkan bahasa yang dipakai.
+The default locale is `id`. RespKit embeds its built-in Indonesian (`id`) and English (`en`) catalogs from JSON files, so applications do not need to read locale files from disk at runtime.
 
-## Override bahasa untuk satu response
+RespKit checks the `Accept-Language` header for each request and supports regional tags such as `id-ID`. It selects a supported catalog for the response and sets `Content-Language` to the language used. A single response uses one effective locale so its messages stay consistent.
+
+## Override the language for one response
+
+Use `resp.Locale` to select a language for an individual response:
 
 ```go
 return resp.Fail(ctx, resp.ErrNotFound, resp.Locale("en"))
 ```
 
-Override response lebih diutamakan daripada `Accept-Language`.
+The response option takes precedence over the request's `Accept-Language` value.
 
-## Mengubah locale default dan menambah pesan
+## Set a default locale and add messages
 
 ```go
 err := resp.Configure(
 	resp.WithDefaultLocale("en"),
 	resp.WithTranslations(map[string]map[string]string{
 		"en": {"USER_SUSPENDED": "Your account is suspended."},
-		"id": {"USER_SUSPENDED": "Akun ini ditangguhkan."},
 	}),
 )
 if err != nil {
@@ -29,8 +31,10 @@ if err != nil {
 }
 ```
 
-Panggil `Configure` saat startup sebelum melayani request. Konfigurasi pengganti harus memiliki katalog untuk bahasa default. `WithTranslations` menambah atau mengganti entri katalog.
+Call `Configure` during startup before serving requests. The resulting configuration must include a catalog for the selected default locale. `WithTranslations` adds or replaces entries in the catalogs.
 
-## Parameter pesan
+Applications can add other languages by providing their own message catalog. Add a localized entry for each supported locale, keep the public error code the same across languages, and translate only the user-facing message.
 
-Terjemahan validasi dapat menggunakan placeholder, misalnya `{field}` dan `{min}`. Berikan nilainya melalui `resp.FieldError.Params`. Kode error tetap sama di semua bahasa; yang berubah hanya pesan yang dilihat pengguna.
+## Translation parameters
+
+Some built-in validation messages use placeholders such as `{field}` and `{min}`. Supply their values through `resp.FieldError.Params`. Avoid putting secrets or private user data in translation parameters.

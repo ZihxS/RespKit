@@ -1,24 +1,25 @@
 ---
-title: "Memulai"
-description: "Instalasi RespKit dan response HTTP pertama."
+title: "Quick start"
+description: "Install RespKit and send your first HTTP response."
 ---
-## Persyaratan
 
-Modul utama RespKit kompatibel dengan Go 1.22 atau yang lebih baru dan tidak menarik dependency framework ke aplikasi. Modul untuk pengujian framework upstream dan adapter pgx berdiri terpisah.
+## Requirements
 
-Repository source memakai module path:
+The core RespKit module supports Go 1.22 and later and has no third-party runtime dependencies. Framework test suites and optional adapters use separate Go modules.
+
+The module path for this source is:
 
 ```text
 github.com/ZihxS/RespKit
 ```
 
-Pasang package utama dari branch `main` dengan:
+Install the response package:
 
 ```bash
-go get github.com/ZihxS/RespKit/resp@main
+go get github.com/ZihxS/RespKit/resp
 ```
 
-## Response pertama dengan net/http
+## Your first response with net/http
 
 ```go
 package main
@@ -32,7 +33,11 @@ import (
 
 func main() {
 	http.HandleFunc("/users/123", func(w http.ResponseWriter, r *http.Request) {
-		if err := resp.OK(resp.HTTP(w, r), map[string]any{"user_id": 123}); err != nil {
+		user := map[string]any{
+			"user_id": 123,
+			"name":    "Ada",
+		}
+		if err := resp.OK(resp.HTTP(w, r), user); err != nil {
 			log.Printf("write response: %v", err)
 		}
 	})
@@ -41,15 +46,23 @@ func main() {
 }
 ```
 
-Response sukses berstatus `200 OK`:
+The response uses status 200 and the default envelope:
 
 ```json
-{"success":true,"data":{"user_id":123}}
+{
+  "success": true,
+  "data": {
+    "user_id": 123,
+    "name": "Ada"
+  }
+}
 ```
 
-`resp.HTTP` menyatukan `http.ResponseWriter` dan `*http.Request` menjadi context yang bisa dipakai oleh API RespKit. Pola yang sama berlaku untuk Chi dan Gorilla/mux.
+`resp.HTTP` combines an `http.ResponseWriter` and `*http.Request` into the context expected by RespKit. The same pattern works with Chi and Gorilla/mux.
 
-## Mengirim error
+## Return an error
+
+Use a domain error rather than a raw database or provider message:
 
 ```go
 if err := resp.Fail(ctx, resp.ErrNotFound); err != nil {
@@ -57,8 +70,8 @@ if err := resp.Fail(ctx, resp.ErrNotFound); err != nil {
 }
 ```
 
-Gunakan error domain seperti `resp.ErrNotFound` atau `resp.ErrValidation`, bukan teks error database atau pesan internal. RespKit menentukan status dan kode publik; isi error mentah tetap berada di sisi server.
+RespKit selects the status and public error code. The raw internal error remains on the server and is not included in the response by default.
 
-## API tanpa konfigurasi
+## Use RespKit without configuration
 
-Helper package-level menggunakan konfigurasi default. Untuk konfigurasi terisolasi atau beberapa API yang mempunyai kebijakan berbeda, buat `*resp.Engine` dengan `resp.New(...)`. Lihat [Konfigurasi](/configuration).
+Package-level helpers use the default engine, so a basic handler needs no setup. To use separate policies for different APIs, create an engine with `resp.New`. See [configuration](/configuration) for the available options.

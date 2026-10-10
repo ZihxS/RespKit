@@ -1,20 +1,23 @@
 ---
-title: "Keamanan"
-description: "Penanganan pesan error dan pelaporan celah keamanan."
+title: "Security"
+description: "Protect internal error details and report security issues."
 ---
-Raw `err.Error()` tidak pernah dimasukkan ke pesan publik secara default. Error yang tidak dikenal mendapat kode umum `INTERNAL_ERROR` dan status 500. Gunakan kode error domain yang stabil, dan jangan memakai pesan mentah database/provider sebagai teks untuk client.
 
-## Jangan aktifkan debug message di production
+RespKit never includes the raw value of `err.Error()` in a client message by default. Unrecognized errors receive the general `INTERNAL_ERROR` code and status 500. Use stable domain errors instead of exposing raw messages from databases or external providers.
 
-`resp.WithExposeInternalErrors(true)` menambahkan `debug_message` berisi pesan error asli. Pesan itu bisa mengandung query SQL, token, jalur internal, alamat host, atau informasi pribadi.
+## Keep debug messages disabled in production
+
+`resp.WithExposeInternalErrors(true)` adds the original error text as `debug_message`. An error can contain SQL queries, credentials, internal paths, hostnames, or personal data.
 
 ```go
-// Hanya untuk proses lokal yang terisolasi.
+// Use only in an isolated local development process.
 api, err := resp.New(resp.WithExposeInternalErrors(true))
 ```
 
-Jangan aktifkan opsi ini pada server yang dapat diakses melalui internet. Jangan mengaktifkannya berdasarkan header request atau input pengguna.
+Do not enable this option on an internet-accessible server or based on a request header or user input. Prefer structured server-side logging with appropriate access controls.
 
-## Pelaporan celah keamanan
+## Report a security issue
 
-Laporkan dugaan kerentanan secara privat ke [m.saleh.solahudin@gmail.com](mailto:m.saleh.solahudin@gmail.com). Jangan membuat issue publik berisi kredensial, data pengguna, log production, atau langkah eksploitasi.
+Use [GitHub's private reporting form](https://github.com/ZihxS/RespKit/security/advisories/new) or email [m.saleh.solahudin@gmail.com](mailto:m.saleh.solahudin@gmail.com). Include the affected version and steps to reproduce when possible. Do not publish credentials, user data, production logs, or exploit details in a public issue.
+
+Dependabot alerts are enabled for the repository. Maintainers should review alerts for every module, including dependencies used only by integration tests.

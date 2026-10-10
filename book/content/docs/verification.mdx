@@ -1,60 +1,51 @@
 ---
-title: Catatan verifikasi
-description: Versi toolchain, hasil test lokal, dan status GitHub Actions RespKit.
+title: "Verification report"
+description: "Toolchain versions, local checks, and hosted CI results."
 ---
 
-Dokumen ini mencatat test yang benar-benar dijalankan serta batas klaim kompatibilitasnya.
+This report records checks that were run and the limits of the compatibility claims.
 
-## Hasil lokal
+## Local verification
 
-Run lokal terakhir yang tercatat dilakukan pada 10 Oktober 2026, dengan Go 1.27.1 di macOS arm64. Module utama masih menargetkan Go 1.22+. Semua job hosted CI menggunakan satu toolchain, Go 1.27.x, agar setiap platform diuji dengan versi Go yang sama. Framework tests dan adapter pgx juga dijalankan dengan Go 1.27.x.
+The latest recorded local run was performed on 10 October 2026 with Go 1.27.1 on macOS arm64. The core module supports Go 1.22 and later. The core tests also passed locally with Go 1.22.12.
 
-| Pemeriksaan | Hasil lokal yang tercatat | Perintah |
+| Check | Result | Command |
 | --- | --- | --- |
-| Test module utama | PASS | `make test` |
-| Test dengan versi minimum Go | PASS — Go 1.22.12, diuji lokal | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
-| Race detector | PASS | `make race` |
-| Analisis statis | PASS | `make vet` |
-| Statement coverage gabungan `resp` dan `internal/...` | PASS — 100.0% sebelum perbaikan coverage CI | `make coverage` |
-| Build smoke Linux/amd64 dan Windows/amd64 | PASS — compile-only | `GOOS=linux/windows GOARCH=amd64 go test -exec=true -count=1 ./...` |
-| Framework upstream dengan race detector | PASS — 64 test | `go test -race -count=1 -v ./...` di `integrations/framework-tests` |
-| Adapter pgx dengan race detector | PASS | `make integration-mappers` |
+| Core tests | Pass | `make test` |
+| Tests with minimum supported Go version | Pass with Go 1.22.12 | `GOTOOLCHAIN=go1.22.12 go test -count=1 ./...` |
+| Race detector | Pass | `make race` |
+| Static analysis | Pass | `make vet` |
+| Combined statement coverage for `resp` and `internal/...` | 100.0% | `make coverage` |
+| Linux/amd64 and Windows/amd64 cross-build smoke | Pass; compile only | `GOOS=linux/windows GOARCH=amd64 go test -exec=true -count=1 ./...` |
+| GitHub Actions workflow syntax | Pass | `actionlint .github/workflows/ci.yml` |
+| Upstream framework suite with race detector | Pass; 64 tests | `go test -race -count=1 -v ./...` in `integrations/framework-tests` |
+| Optional pgx mapper suite with race detector | Pass | `make integration-mappers` |
 
-Build smoke cross-platform hanya mengompilasi test binary; command tersebut tidak menjalankannya pada OS tujuan.
+The cross-build smoke command compiles test binaries from the local macOS machine; it does not run those binaries on Linux or Windows.
 
-## CI GitHub
+## Hosted CI
 
-Run awal setelah dokumentasi dipush, `38070616402`, menemukan dua masalah:
+All hosted CI jobs use Go 1.27.x. The [quality-gates run on 11 October 2026](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed on Ubuntu, macOS, and Windows. It also passed the upstream framework runtime tests, race detector, 100% statement-coverage gate, and optional pgx mapper tests.
 
-- Test Go 1.22 di `macos-latest` gagal saat menjalankan binary test dengan error `dyld` pada runner macOS 26 arm64. Matriks sekarang memakai Go 1.27.x saja pada Ubuntu, macOS, dan Windows.
-- Gate coverage CI mencatat 98.4%. Test loader katalog JSON dan jalur kegagalan inisialisasi engine ditambahkan agar gate menghitung semua package target dan tetap mengharuskan 100.0% statement coverage.
+An earlier workflow run exposed a macOS runner issue with Go 1.22 and a coverage gap. CI now uses one Go version across all operating systems, and regression tests cover the previously unmeasured package paths. Go 1.22 remains the supported minimum for the core module and passed its local test run.
 
-Go 1.22 tetap menjadi versi minimum yang didukung module utama dan sudah lulus test lokal. Semua job CI memakai Go 1.27.x. [Run 38072373586 pada 11 Oktober 2026](https://github.com/ZihxS/RespKit/actions/runs/38072373586) lulus untuk Ubuntu, macOS, Windows, test framework upstream, race detector, coverage 100%, dan mapper pgx.
+## Pinned framework versions
 
-## Versi framework upstream
+The integration suite sends requests through these upstream routers:
 
-Module di `integrations/framework-tests` mengunci versi berikut dan mengirim request melalui router dari masing-masing framework:
-
-| Framework/router | Versi |
-| --- | ---: |
+| Framework or router | Tested version |
+| --- | --- |
 | Gin | v1.12.0 |
-| Echo | v4.16.0, v5.4.0 |
-| Fiber | v2.52.12, v3.0.0 |
+| Echo | v4.16.0 and v5.4.0 |
+| Fiber | v2.52.12 and v3.0.0 |
 | Chi | v5.3.2 |
 | Gorilla/mux | v1.8.1 |
 | Beego | v2.3.10 |
 
-Test memeriksa status, body JSON, locale dan header cache, kerahasiaan error, `Location`, serta response 204 tanpa body. Framework dan driver tidak menjadi dependency module utama. Keberhasilan suite ini hanya mencakup versi yang tertulis di tabel.
+The tests check status codes, JSON bodies, localization and cache headers, error confidentiality, `Location`, and empty 204 responses. Passing the suite verifies only the pinned versions listed here.
 
-## Perintah untuk mengulang verifikasi
+Run the same checks with `make integration`. The framework test module and optional pgx mapper fetch upstream dependencies, so network access is required. These dependencies remain outside the core module.
 
-```bash
-make test
-make race
-make vet
-make coverage
-make integration
-make integration-mappers
-```
+## Coverage scope
 
-Test framework dan module pgx perlu akses internet untuk mengambil dependency upstream.
+The 100% figure covers combined statement coverage for the root `resp` package and runtime packages under `internal/`. It does not mean every branch or path is covered. The framework tests and pgx mapper live in separate modules and are reported independently.

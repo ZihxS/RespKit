@@ -1,12 +1,13 @@
 ---
-title: "Testing dan kontribusi"
-description: "Menjalankan test suite dan panduan kontribusi."
+title: "Testing and contributing"
+description: "Run the test suites and make changes to RespKit."
 ---
-Repository menyediakan pengujian unit untuk modul utama dan suite integrasi terpisah yang mengirim request lewat router dari masing-masing framework.
 
-## Perintah pengujian
+RespKit has unit tests for the core module and separate integration suites that send real HTTP requests through upstream framework routers.
 
-Jalankan dari root repository source:
+## Run the checks
+
+Run these commands from the repository root:
 
 ```bash
 make test
@@ -17,17 +18,18 @@ make integration
 make integration-mappers
 ```
 
-Module test framework menyatakan Go 1.26 sebagai minimum, sedangkan adapter pgx memerlukan Go 1.25. CI menjalankan keduanya dengan Go 1.27.x. Akses internet diperlukan untuk mengunduh dependency. Framework dan adapter berada di module terpisah, bukan dependency bagi pengguna RespKit.
+The core module supports Go 1.22 and later. The framework test module requires Go 1.26 or later, and the optional pgx adapter requires Go 1.25. The hosted CI workflow currently runs each job with Go 1.27.x. Downloading dependencies for the integration suites requires network access.
 
-Pada verification record 10 Oktober 2026, suite upstream race-enabled lulus 64 test pada Gin v1.12.0, Echo v4.16.0/v5.4.0, Fiber v2.52.12/v3.0.0, Chi v5.3.2, Gorilla/mux v1.8.1, dan Beego v2.3.10. Hasil lokal tersebut terpisah dari hasil build CI pada GitHub.
+The upstream suite last recorded 64 race-enabled tests across Gin v1.12.0, Echo v4.16.0 and v5.4.0, Fiber v2.52.12 and v3.0.0, Chi v5.3.2, Gorilla/mux v1.8.1, and Beego v2.3.10. The latest [GitHub Actions quality-gates run](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed on Ubuntu, macOS, and Windows, including the framework and pgx integration jobs.
 
-## Panduan kontribusi
+## Contribution guidelines
 
-- Adapter HTTP berada di `internal/transport`; uji terhadap framework upstream.
-- Klasifikasi error berada di `internal/resolver`; gunakan `errors.Is` dan `errors.As`.
-- Katalog bahasa berada di `internal/i18n/locales`, satu file JSON per bahasa.
-- Perubahan yang mengubah format response atau API harus menyertakan regression test.
-- Dependency framework atau driver tambahan harus tinggal di module opsional bawah `integrations/`.
-- Jangan memasukkan raw error atau data sensitif ke response publik maupun parameter terjemahan.
+- Put HTTP adapter changes in `internal/transport` and verify them against the upstream framework.
+- Put error classification changes in `internal/resolver`; use `errors.Is` and `errors.As`.
+- Store built-in translation catalogs under `internal/i18n/locales`, with one JSON file per language.
+- Include regression tests when changing the response format or public API.
+- Keep framework and driver dependencies in separate modules under `integrations/`.
+- Do not put raw errors, secrets, or private values in public responses or translation parameters.
+- Update the architecture and verification documentation when a change affects package boundaries or test claims.
 
-Lihat [CONTRIBUTING.md](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md) dan [catatan verifikasi](/verification) untuk panduan kontribusi dan rincian hasil pengujian.
+See the repository's [contribution guide](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md) and [verification report](/verification) for more detail.

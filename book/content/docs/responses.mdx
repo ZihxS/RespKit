@@ -1,62 +1,85 @@
 ---
-title: "Response HTTP"
-description: "Format response sukses dan gagal yang disediakan RespKit."
+title: "HTTP responses"
+description: "Success and error response formats provided by RespKit."
 ---
-## Helper dasar
 
-| Helper | Status | Kegunaan |
+RespKit provides helpers for successful responses, errors, created resources, and responses with no body. The default response format is an envelope. You can choose RFC 9457 Problem Details for errors when creating an engine.
+
+## Response helpers
+
+| Helper | Status | Use |
 | --- | ---: | --- |
-| `resp.OK(ctx, data)` | 200 | Response berhasil |
-| `resp.Created(ctx, data, opts...)` | 201 | Resource baru berhasil dibuat |
-| `resp.NoContent(ctx)` | 204 | Sukses tanpa body |
-| `resp.Fail(ctx, err, opts...)` | Mengikuti klasifikasi error | Response gagal |
-| `resp.NotFound(ctx, opts...)` | 404 | Shortcut untuk resource tidak ditemukan |
+| `resp.OK(ctx, data)` | 200 | Return a successful response. |
+| `resp.Created(ctx, data, opts...)` | 201 | Return a newly created resource. |
+| `resp.NoContent(ctx)` | 204 | Return success without a body. |
+| `resp.Fail(ctx, err, opts...)` | From error mapping | Return a mapped error response. |
+| `resp.NotFound(ctx, opts...)` | 404 | Return a resource-not-found response. |
 
-Semua helper mengembalikan `error`. Tangani error itu sesuai framework. Error tersebut menandakan konteks tidak didukung atau proses penulisan response gagal; jangan mencoba menulis response kedua jika response pertama mungkin sudah terkirim.
+Each helper returns an `error`. Handle it according to the framework in use. It indicates an unsupported context or a response-writing failure. Do not try to write a second response if the first one may already have been sent.
 
-## Bentuk response default
+## Successful responses
 
-Response sukses:
+The default envelope keeps application data under `data` and uses `snake_case` for RespKit-owned keys:
 
 ```json
 {
   "success": true,
-  "data": {"user_id": 123}
+  "data": {
+    "user_id": 123,
+    "name": "Ada"
+  }
 }
 ```
 
-Response gagal menggunakan kode dan pesan yang aman untuk client:
+`resp.Created` returns the same envelope with status 201. Use `resp.Location` to set the resource's `Location` header:
+
+```go
+return resp.Created(ctx, user, resp.Location("/users/123"))
+```
+
+`resp.NoContent` returns status 204 without a response body. Requests using the `HEAD` method also receive no body.
+
+## Errors with the default envelope
+
+An unknown resource maps to a stable public code and a localized message. This example uses the English catalog:
 
 ```json
 {
   "success": false,
   "error": {
     "code": "RESOURCE_NOT_FOUND",
-    "message": "Data tidak ditemukan."
+    "message": "The requested resource was not found."
   }
 }
 ```
 
-Kunci milik RespKit memakai `snake_case` secara default. Pilihan casing hanya mengubah kunci envelope RespKit; JSON `data` milik aplikasi tidak ditulis ulang.
+Validation errors can include field-level details. Only include values that are safe to return to the client:
 
-## Header dan perilaku HTTP
-
-- `Content-Type` memakai JSON UTF-8. Format Problem Details menggunakan `application/problem+json`.
-- `Content-Language` menyatakan bahasa pesan response; `Vary: Accept-Language` membantu cache yang memperhatikan locale.
-- Header `X-Request-ID` yang aman dapat diteruskan ke metadata response.
-- `resp.Created` mendukung `resp.Location(url)` untuk header `Location`.
-- Response `204 No Content` dan request `HEAD` tidak mengirim body.
-- Response `401` menyertakan challenge `WWW-Authenticate: Bearer` secara default. Aplikasi dapat mengatur challenge yang sesuai skema autentikasinya.
-
-Contoh:
-
-```go
-err := resp.Created(ctx, user, resp.Location("/users/123"))
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_FAILED",
+    "message": "The submitted data is invalid.",
+    "details": [
+      {
+        "field": "email",
+        "code": "FIELD_REQUIRED",
+        "message": "The email field is required."
+      },
+      {
+        "field": "name",
+        "code": "MIN_LENGTH",
+        "message": "The name field must be at least 3 characters."
+      }
+    ]
+  }
+}
 ```
 
-## RFC 9457 Problem Details
+## Errors with RFC 9457 Problem Details
 
-Format error dapat diubah per engine:
+Select `resp.ProblemDetails` when creating an engine:
 
 ```go
 api, err := resp.New(resp.WithErrorFormat(resp.ProblemDetails))
@@ -67,4 +90,27 @@ if err != nil {
 return api.Fail(ctx, resp.ErrNotFound)
 ```
 
-Success response tetap menggunakan envelope RespKit; opsi tersebut mengubah representasi error.
+The same 404 error is then represented as Problem Details:
+
+```json
+{
+  "type": "about:blank",
+  "title": "Not Found",
+  "status": 404,
+  "detail": "The requested resource was not found.",
+  "code": "RESOURCE_NOT_FOUND"
+}
+```
+
+The response uses `application/problem+json`. Problem Details changes error responses only. Successful responses continue to use the RespKit envelope.
+
+## Headers and HTTP behavior
+
+- JSON responses use the JSON UTF-8 content type. Problem Details errors use `application/problem+json`.
+- `Content-Language` identifies the language used in the response. `Vary: Accept-Language` helps caches that vary by request language.
+- A safe `X-Request-ID` header can be copied into response metadata.
+- `resp.Created` can set the `Location` header with `resp.Location(url)`.
+- A 204 response and a response to a `HEAD` request have no body.
+- A 401 response includes `WWW-Authenticate: Bearer` by default. Configure a challenge that matches the authentication scheme used by the application.
+
+The envelope naming option affects RespKit-owned keys only. Application data is returned without changing its JSON keys.

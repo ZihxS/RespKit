@@ -1,30 +1,47 @@
 ---
-title: Checklist perilisan
-description: Gate yang harus selesai sebelum RespKit diberi release tag publik v1.0.0.
+title: "Releases"
+description: "Published versions, required CI checks, and the maintainer release process."
 ---
 
-Checklist ini membedakan pemeriksaan source lokal dari pengaturan repository dan hasil hosted CI.
+## Current release
 
-## API dan keamanan
+[RespKit v1.0.0](https://github.com/ZihxS/RespKit/releases/tag/v1.0.0) is published from commit `cae6b7684834cf09aebf8a5786f056e89c58e399`. All six jobs in its [quality-gates run](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed before publication.
 
-- [x] Memisahkan facade publik dari transport, localization, resolver, formatter, dan diagnostics.
-- [x] Mempertahankan helper zero-config `resp.OK`, `resp.Fail`, dan helper response lain.
-- [x] Menjaga key dalam `data` tetap milik aplikasi dan tidak mengubah casing.
-- [x] Menyembunyikan pesan error mentah secara default; opsi debug dinyatakan berbahaya.
-- [x] Menetapkan module path `github.com/ZihxS/RespKit` di seluruh repository.
-- [x] Mencatat kontak keamanan maintainer: [m.saleh.solahudin@gmail.com](mailto:m.saleh.solahudin@gmail.com).
+Install the released core package from an existing Go module:
 
-## Pengujian dan repository
+```bash
+go get github.com/ZihxS/RespKit/resp@v1.0.0
+```
 
-- [x] Menjalankan test, race detector, vet, dan gate coverage 100% untuk `resp` + `internal/...` secara lokal.
-- [x] Menjalankan test race-enabled terhadap router upstream Gin, Echo v4/v5, Fiber v2/v3, Chi, Gorilla/mux, dan Beego.
-- [x] Menjalankan test adapter pgx opsional.
-- [x] Menambahkan GitHub Actions dengan satu toolchain, Go 1.27.x, untuk Ubuntu, macOS, Windows, test framework upstream, dan mapper pgx.
-- [x] Memastikan workflow GitHub Actions lulus pada Ubuntu, macOS, Windows, test framework upstream, race detector, coverage, dan mapper pgx ([run 38072373586](https://github.com/ZihxS/RespKit/actions/runs/38072373586)).
-- [ ] Mengaktifkan Private Vulnerability Reporting dan Dependabot alerts.
-- [ ] Melindungi branch default dengan pull request dan required CI checks.
-- [ ] Membuat tag release `v1.0.0` setelah semua gate di atas selesai.
+The root module supports Go 1.22 and later. Optional integrations are separate Go modules with their own dependency and Go requirements. A root release tag does not version a nested module; nested modules require tags that include their directory path.
 
-## Status distribusi
+## Repository protections
 
-Source dan dokumentasi tersedia di [GitHub](https://github.com/ZihxS/RespKit) dan [GitHub Pages](https://zihxs.github.io/RespKit/). Label versi source `v1.0.0` belum berarti sudah ada GitHub release atau bahwa seluruh kombinasi versi dependency telah disertifikasi.
+Private Vulnerability Reporting and Dependabot alerts are enabled. Report suspected vulnerabilities through the [private reporting form](https://github.com/ZihxS/RespKit/security/advisories/new) or the contact listed in the [security guide](/security).
+
+The main branch requires pull requests and the following GitHub Actions checks:
+
+| Required check | What it verifies |
+| --- | --- |
+| Core / Go 1.27.x / ubuntu-latest | Core tests and go vet on Linux |
+| Core / Go 1.27.x / macos-latest | Core tests and go vet on macOS |
+| Core / Go 1.27.x / windows-latest | Core tests and go vet on Windows |
+| Core race and coverage | Race detection and 100% combined statement coverage for resp and internal runtime packages |
+| Upstream framework runtime tests | Race-enabled tests against the pinned upstream routers |
+| Optional pgx mapper tests | Race-enabled tests for PostgreSQL error mapping |
+
+Branches must be up to date with main before merging. These requirements also apply to administrators. Force pushes and deletion of main are disabled.
+
+A passing CI run verifies the versions listed in the [verification report](/verification). Dependabot alerts remain a separate review responsibility; a successful test run does not establish that dependencies have no known vulnerabilities.
+
+## Publish a future release
+
+1. Update the changelog and relevant documentation. Preserve the public API or describe breaking changes clearly.
+2. Run the checks in the [testing guide](/testing). Keep raw internal errors hidden and preserve the zero-configuration response helpers.
+3. Submit changes through a pull request and merge only after every required check passes.
+4. Confirm the exact main commit to release has a successful quality-gates run. Review open Dependabot alerts and resolve or document any that affect the release.
+5. Confirm private reporting, Dependabot alerts, and main branch protection remain enabled.
+6. Create the version tag and GitHub release from that verified commit. Include installation instructions, changes, compatibility information, and links to verification results.
+7. Verify the published tag resolves to the intended commit, then update the release links in the documentation.
+
+Keep published version tags unchanged. Publish a new version when a released package needs a correction.

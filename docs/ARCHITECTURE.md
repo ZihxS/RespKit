@@ -11,23 +11,31 @@
 
 ## Dependency graph
 
-```text
-                                 +---------------------------+
-     project handler -----------> | resp/ public facade        |
-                                 | options / engine          |
-                                 +---------------------------+
-                                     |       |       |      |
-                       +-------------+       |       |      +------------------+
-                       v                     v       v                         v
-                internal/transport    internal/resolver    internal/i18n    internal/formatter
-                context bridge        semantic error       locale           JSON keys and
-                + framework detection classification       matching        body templates
-                                             |
-                                        internal/diagnostics
-                                          structured error metadata
+```mermaid
+flowchart LR
+    handler["Application handler"] --> api["resp: public API and engine"]
+    api --> transport["Transport"]
+    api --> resolver["Error resolver"]
+    api --> i18n["Localization"]
+    api --> formatter["Response formatter"]
+    api --> diagnostics["Diagnostics"]
 ```
 
-The `internal` tree is an implementation detail: integrations and application code must use exported `resp` APIs only. Internal packages are allowed to import the standard library but never import `resp`, avoiding cycles.
+Arrows show dependencies. Applications call the public API in `resp`, which uses the internal
+packages below.
+
+| Package | Responsibility |
+| --- | --- |
+| `resp` | Public helpers, configuration, and the response engine. |
+| `internal/transport` | Detect framework contexts and write HTTP responses. |
+| `internal/resolver` | Map typed errors to public codes and HTTP statuses. |
+| `internal/i18n` | Select locales and look up translated messages. |
+| `internal/formatter` | Build envelopes, apply key naming, and format Problem Details. |
+| `internal/diagnostics` | Describe error classifications for inspection and the CLI. |
+
+The `internal` tree is an implementation detail. Applications and integrations use exported
+`resp` APIs only. Internal packages may import the standard library, but they do not import
+`resp`, which avoids dependency cycles.
 
 ## Runtime pipeline
 
@@ -43,26 +51,26 @@ The `internal` tree is an implementation detail: integrations and application co
 
 ```text
 resp/
-  config.go       # immutable Engine instances and optional atomic default swap
-  response.go     # public zero-config helpers and response options
-  engine.go       # orchestrates the HTTP response pipeline
-  errors.go       # public domain errors and wrapped causes
-  resolve.go      # resolver facade and diagnostics
-  i18n.go         # locale facade / response-level fallback
-  transport.go    # net/http pairing, export compatibility
-  catalog.go      # builtin error catalog
+  config.go         # immutable Engine instances and optional atomic default swap
+  response.go       # public zero-config helpers and response options
+  engine.go         # orchestrates the HTTP response pipeline
+  errors.go         # public domain errors and wrapped causes
+  resolve.go        # resolver facade and diagnostics
+  i18n.go           # locale facade / response-level fallback
+  transport.go      # net/http pairing, export compatibility
+  catalog.go        # builtin error catalog
 internal/
-  transport/      # adapter.go, detector.go, gin.go, echo.go, fiber.go; stdlib wrappers cover Chi/mux/Beego
-  resolver/       # typed errors, builtins, mapper ordering, SQLSTATE
-  i18n/           # embedded per-locale JSON catalogs, matcher.go, translate.go
-  formatter/      # envelope, response field naming, RFC 9457
-  diagnostics/    # structured JSON for CLI consumers
-cmd/respkit/      # doctor, catalog, explain, version
-examples/nethttp/ # runnable real HTTP example
-integrations/     # separate Go modules for integration tests and optional adapters
-  framework-tests/ # upstream runtime tests, organized by framework + shared testkit
-  pgx/            # optional PostgreSQL error mapper
-.github/workflows/# standard Go and real-framework CI
+  transport/        # adapter.go, detector.go, gin.go, echo.go, fiber.go; stdlib wrappers cover Chi/mux/Beego
+  resolver/         # typed errors, builtins, mapper ordering, SQLSTATE
+  i18n/             # embedded per-locale JSON catalogs, matcher.go, translate.go
+  formatter/        # envelope, response field naming, RFC 9457
+  diagnostics/      # structured JSON for CLI consumers
+cmd/respkit/        # doctor, catalog, explain, version
+examples/nethttp/   # runnable real HTTP example
+integrations/       # separate Go modules for integration tests and optional adapters
+  framework-tests/  # upstream runtime tests, organized by framework + shared testkit
+  pgx/              # optional PostgreSQL error mapper
+.github/workflows/  # standard Go and real-framework CI
 ```
 
 ## Contributor extension rules
