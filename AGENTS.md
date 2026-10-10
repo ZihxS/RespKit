@@ -1,4 +1,4 @@
-# RespKit — AI coding agent instructions
+# RespKit coding agent instructions
 
 RespKit has a **Go 1.22-compatible, standard-library-only** root module. Its owner-selected module path is `github.com/ZihxS/RespKit`; keep it consistent across imports and nested modules.
 
@@ -17,7 +17,7 @@ RespKit has a **Go 1.22-compatible, standard-library-only** root module. Its own
 - Change error classification in `internal/resolver`; use `errors.Is/As`; do not classify by error message strings.
 - Change translation lookup in `internal/i18n`, body formatting in `internal/formatter`, machine-readable JSON in `internal/diagnostics`.
 - Keep the `resp` public facade thin; do not couple it to external framework package imports.
-- Never add optional AI calls, external network calls, secrets, or credentials into the package runtime.
+- Do not add optional external service calls, secrets, or credentials to the package runtime.
 - Maintain 100% combined statement coverage of `resp` plus `internal/...` measured via `make coverage`.
 
 ## Verify
@@ -30,4 +30,4 @@ make coverage
 make integration  # Go 1.26+ and internet required; uses real Gin/Echo/Fiber/Chi/Gorilla mux/Beego
 ```
 
-Do not assert upstream integration success unless the genuine integration tests actually ran. See `docs/RELEASE_CHECKLIST.md` before recommending a public `v1.0.0` tag.
+Do not assert upstream integration success unless the genuine integration tests actually ran. For future releases, follow `book/content/docs/release.mdx` and publish only a commit that passes every required CI check.

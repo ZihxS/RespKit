@@ -1,8 +1,9 @@
 ---
 title: "CLI diagnostics"
-description: "Pemeriksaan dan penjelasan error melalui CLI RespKit."
+description: "Inspect RespKit errors and catalogs from the command line or Go."
 ---
-Perintah di `cmd/respkit` menampilkan versi, katalog error, dan hasil klasifikasi secara lokal.
+
+The CLI in `cmd/respkit` prints the version, checks the built-in catalogs, lists public error codes, and explains an error code. It runs locally and does not send application errors or configuration to a remote service.
 
 ```bash
 go run ./cmd/respkit version
@@ -11,4 +12,6 @@ go run ./cmd/respkit catalog
 go run ./cmd/respkit explain RESOURCE_NOT_FOUND
 ```
 
-Diagnostics error tersedia di Go melalui `resp.Inspect(err)` dan `resp.Explain(err)`. Hasilnya berisi metadata klasifikasi seperti mapper, kode sumber, kode publik, dan status HTTP. Hindari mencatat atau membagikan error mentah yang mungkin memuat data sensitif.
+In Go, use `resp.Inspect(err)` to retrieve classification metadata or `resp.Explain(err)` to get a human-readable summary. Metadata can include the mapper, source code, public code, and HTTP status.
+
+Review diagnostic output before logging or sharing it. Error causes and metadata may contain application-specific information even though the CLI does not print raw error messages by default.

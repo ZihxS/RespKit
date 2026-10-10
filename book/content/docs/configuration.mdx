@@ -1,12 +1,13 @@
 ---
-title: "Konfigurasi"
-description: "Konfigurasi engine, format, bahasa, dan mapper."
+title: "Configuration"
+description: "Configure engines, response formats, locales, and error mappers."
 ---
-Pemakaian paling sederhana tidak memerlukan konfigurasi. Helper `resp.OK`, `resp.Fail`, dan lainnya memakai engine default.
 
-## Engine khusus
+RespKit's package-level helpers use a default engine, so basic responses work without setup.
 
-Gunakan `resp.New` untuk memisahkan kebijakan antar API atau menghindari konfigurasi global:
+## Create a dedicated engine
+
+Use `resp.New` to give an API its own policy or to avoid changing the process-wide default:
 
 ```go
 api, err := resp.New(
@@ -21,11 +22,11 @@ if err != nil {
 return api.OK(ctx, data)
 ```
 
-Engine yang dibuat bersifat immutable setelah pembuatan dan aman dipakai bersama. Pilihan naming yang tersedia: `resp.SnakeCase`, `resp.CamelCase`, dan `resp.PascalCase`. Format error: `resp.Envelope` atau `resp.ProblemDetails`.
+An engine is immutable after creation and safe for concurrent use. Available naming options are `resp.SnakeCase`, `resp.CamelCase`, and `resp.PascalCase`. Error formats are `resp.Envelope` and `resp.ProblemDetails`.
 
-## Konfigurasi default
+## Configure the default engine
 
-`resp.Configure` mengganti engine default secara atomik:
+`resp.Configure` replaces the process-wide default engine atomically:
 
 ```go
 if err := resp.Configure(resp.WithDefaultLocale("en")); err != nil {
@@ -33,10 +34,14 @@ if err := resp.Configure(resp.WithDefaultLocale("en")); err != nil {
 }
 ```
 
-Panggil sekali saat aplikasi mulai. Untuk pengujian, gunakan engine khusus agar konfigurasi global tidak saling memengaruhi.
+Call it once during application startup, before handlers serve requests. In tests, prefer a dedicated engine so tests do not affect one another through shared global configuration.
 
-## Opsi response
+## Per-response options
 
-`resp.Locale("en")` dan `resp.Location("/users/123")` hanya berlaku untuk pemanggilan response tersebut. `Location` diterapkan pada response `201 Created`.
+`resp.Locale("en")` and `resp.Location("/users/123")` apply only to the response call that receives them. The location option sets the `Location` header on a 201 Created response.
 
-Opsi internal error sengaja hanya tersedia di tingkat engine; opsi itu bukan pilihan per request atau header.
+The option to expose internal error messages is available only when creating an engine. It cannot be set for an individual request or through a request header. See [security guidance](/security) before considering it for isolated local development.
+
+## Error handling
+
+`resp.New` and `resp.Configure` return an error when options are invalid, such as when the configured default locale has no translation catalog. Handle configuration errors at startup so the application does not begin serving with an unintended policy.

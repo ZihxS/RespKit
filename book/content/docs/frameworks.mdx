@@ -1,70 +1,84 @@
 ---
-title: HTTP framework
-description: Contoh integrasi RespKit dengan router Go dan batas kompatibilitasnya.
+title: "HTTP frameworks"
+description: "Connect RespKit to Go routers and understand its compatibility boundary."
 ---
 
-Semua contoh menggunakan module path `github.com/ZihxS/RespKit` dan package publik yang sama:
+All examples use the module path `github.com/ZihxS/RespKit` and the same public package:
 
 ```go
 import "github.com/ZihxS/RespKit/resp"
 ```
 
-Gin, Echo v4/v5, dan Fiber v2/v3 menerima context framework langsung. `net/http`, Chi, Gorilla/mux, dan Beego v2 menggunakan pasangan `http.ResponseWriter` dan `*http.Request` melalui `resp.HTTP(w, r)`.
+Gin, Echo v4/v5, and Fiber v2/v3 accept their native framework contexts. Standard `net/http`, Chi, Gorilla/mux, and Beego v2 handlers pass an `http.ResponseWriter` and `*http.Request` through `resp.HTTP`.
 
-## net/http, Chi, dan Gorilla/mux
+## net/http, Chi, and Gorilla/mux
 
-Chi dan Gorilla/mux mendaftarkan handler `net/http` biasa. Handler ini dapat dipakai pada kedua router:
+Chi and Gorilla/mux register ordinary `net/http` handlers. The same handler works with either router:
 
 ```go
 func handler(w http.ResponseWriter, r *http.Request) {
-	if err := resp.OK(resp.HTTP(w, r), map[string]any{"user_id": 7}); err != nil {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(resp.HTTP(w, r), user); err != nil {
 		log.Printf("write response: %v", err)
 	}
 }
 ```
 
+Register it with Chi or Gorilla/mux:
+
 ```go
-router.Get("/users", handler)                         // Chi
-router.HandleFunc("/users", handler).Methods("GET") // Gorilla/mux
+router.Get("/users", handler) // Chi
+router.HandleFunc("/users", handler).Methods(http.MethodGet) // Gorilla/mux
 ```
 
 ## Beego v2
 
-Gunakan response writer dan request yang tersedia pada context Beego:
+Wrap the response writer and request exposed by the Beego context:
 
 ```go
 func handler(c *beecontext.Context) {
-	if err := resp.OK(resp.HTTP(c.ResponseWriter, c.Request), map[string]any{"user_id": 7}); err != nil {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(resp.HTTP(c.ResponseWriter, c.Request), user); err != nil {
 		log.Printf("write response: %v", err)
 	}
 }
 ```
 
-Import tipe context dari `github.com/beego/beego/v2/server/web/context`.
+Import the context type from `github.com/beego/beego/v2/server/web/context`.
 
 ## Gin
 
-Gin context dapat dipass langsung. Error penulisan dapat diteruskan ke error stack Gin:
+Pass the Gin context directly. Add a helper error to Gin's error list so the application's error middleware can inspect it:
 
 ```go
 func handler(c *gin.Context) {
-	if err := resp.OK(c, map[string]any{"user_id": 7}); err != nil {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	if err := resp.OK(c, user); err != nil {
 		_ = c.Error(err)
 	}
 }
 ```
 
-## Echo v4 dan v5
+## Echo v4 and v5
 
-Kembalikan error dari helper agar error handler Echo dapat memprosesnya:
+Return the helper error so Echo's configured HTTP error handler can process it. Echo v4 uses `echo.Context`:
 
 ```go
-func handler(c echo.Context) error { // Echo v4
+func handler(c echo.Context) error {
 	return resp.Fail(c, resp.ErrNotFound)
 }
 ```
 
-Echo v5 memakai package `github.com/labstack/echo/v5` dan handler dengan context `*echo.Context`:
+Echo v5 uses `*echo.Context` from `github.com/labstack/echo/v5`:
 
 ```go
 func handler(c *echo.Context) error {
@@ -72,26 +86,40 @@ func handler(c *echo.Context) error {
 }
 ```
 
-## Fiber v2 dan v3
+## Fiber v2 and v3
 
-Kembalikan error helper kepada Fiber:
+Return the helper error to Fiber. Fiber v2 uses `*fiber.Ctx`:
 
 ```go
-func handler(c *fiber.Ctx) error { // Fiber v2
-	return resp.OK(c, map[string]any{"user_id": 7})
+func handler(c *fiber.Ctx) error {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	return resp.OK(c, user)
 }
 ```
 
-Fiber v3 menggunakan `fiber.Ctx` dari package `github.com/gofiber/fiber/v3`.
+Fiber v3 uses `fiber.Ctx` from `github.com/gofiber/fiber/v3`:
 
-## Detail adapter
+```go
+func handler(c fiber.Ctx) error {
+	user := map[string]any{
+		"user_id": 7,
+		"name":    "Ada",
+	}
+	return resp.OK(c, user)
+}
+```
 
-- Adapter Gin mengenali `JSON(int, any)`, `GetHeader(string)`, dan `Header(string, string)`.
-- Adapter Echo memakai `Blob(int, string, []byte)`, `Request() *http.Request`, dan header dari `Response().Header()`.
-- Adapter Fiber memakai `Get(string, ...string) string`, `Set(string, string)`, `Send([]byte) error`, dan refleksi untuk pemanggilan `Status(int)`. Return type `Status` berbeda antara Fiber v2 dan v3.
-- Chi, Gorilla/mux, dan Beego v2 memakai `resp.HTTP`, sehingga module utama tidak mengimpor ketiganya.
-- Pasang RespKit di titik akhir handler. Middleware yang sudah menulis body atau status dapat mencegah RespKit mengatur response.
+## Adapter details
 
-## Verifikasi versi upstream
+- The Gin adapter uses `JSON(int, any)`, `GetHeader(string)`, and `Header(string, string)`.
+- The Echo adapter uses `Blob(int, string, []byte)`, `Request() *http.Request`, and headers from `Response().Header()`.
+- The Fiber adapter uses `Get(string, ...string) string`, `Set(string, string)`, and `Send([]byte) error`. It reflects on `Status(int)` because Fiber v2 and v3 return different types from that method.
+- Chi, Gorilla/mux, and Beego v2 use `resp.HTTP`, so the core module does not import those frameworks.
+- Place RespKit at the final response point in a handler. Middleware that has already written a status or body may prevent RespKit from setting the response.
 
-Test terpisah di `integrations/framework-tests` mengirim request lewat router dari framework yang tercantum di [catatan verifikasi](/verification). Test memeriksa status, JSON, `Content-Language`, `Vary`, `Content-Type`, kerahasiaan error, header `Location`, dan body kosong untuk 204. Versi framework lain tetap perlu diuji oleh aplikasi yang menggunakannya.
+## Upstream compatibility tests
+
+The separate module at `integrations/framework-tests` sends requests through real upstream routers. It checks status codes, JSON bodies, `Content-Language`, `Vary`, `Content-Type`, error confidentiality, `Location`, and empty 204 responses. The [verification report](/verification) lists the pinned framework versions. Applications should also test the versions they choose to use.
