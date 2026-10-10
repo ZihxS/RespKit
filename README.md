@@ -1,11 +1,7 @@
-<h1 align="center">RespKit</h1>
+<h1 align="center">RespKit — Smarter API Responses for Go</h1>
 
 <p align="center">
   <img src="assets/respkit.png" alt="RespKit" width="560">
-</p>
-
-<p align="center">
-  Consistent HTTP responses and safe error handling for Go applications.
 </p>
 
 RespKit gives HTTP handlers a shared response format, maps Go errors to stable status codes,
