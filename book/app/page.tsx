@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { Brand } from "@/components/brand";
+import { brandDescription, brandTitle } from "@/lib/branding";
 
 const sections = [
   {
@@ -41,11 +42,10 @@ export default function Home() {
             HTTP response library for Go
           </p>
           <h1 className="text-5xl font-semibold tracking-tight sm:text-6xl">
-            Consistent HTTP responses from one package.
+            {brandTitle}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-fd-muted-foreground">
-            Format responses, map errors, and return localized messages in Go
-            applications.
+            {brandDescription}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link

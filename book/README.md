@@ -19,4 +19,6 @@ The generated site is written to `out/`. GitHub Pages builds and publishes it fr
 
 ## Branding
 
+The project title is **RespKit — Consistent HTTP Responses for Go**. The site title, tagline, and description are defined in `lib/branding.ts`. Keep the README heading aligned with that title when changing the branding.
+
 The navigation logo uses `assets/respkit.png` from the repository root. Update that file to change the logo in both the README and the documentation site.

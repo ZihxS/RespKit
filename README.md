@@ -1,4 +1,4 @@
-<h1 align="center">RespKit — Smarter API Responses for Go</h1>
+<h1 align="center">RespKit — Consistent HTTP Responses for Go</h1>
 
 <p align="center">
   <img src="assets/respkit.png" alt="RespKit" width="560">
@@ -175,6 +175,9 @@ RespKit is available under the [MIT License](LICENSE).
 Thanks to everyone who contributes to RespKit. See the
 [contributors graph](https://github.com/ZihxS/RespKit/graphs/contributors) for the current
 list.
+
+To contribute, read the [contribution guide](CONTRIBUTING.md) or choose a task from the
+[optional integrations roadmap](https://github.com/ZihxS/RespKit/issues/4).
 
 ## Star History
 
