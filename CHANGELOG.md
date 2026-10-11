@@ -11,6 +11,7 @@
 - Aligned the mattn SQLite mapper with issue #8: I/O failures and unknown extended codes stay safe internal errors, and the integration documentation explains driver choice.
 - Published SQLite and pgx as separately versioned optional modules at `integrations/sqlite3/v1.0.0` and `integrations/pgx/v1.0.0`, requiring core `v1.1.0`. The core remains Go 1.22-compatible and standard-library-only; SQLite requires cgo and a C compiler, while pgx requires Go 1.25.
 - Updated Go coding guidance to require named error/status constants, keyed composite literals with one value per line, and deterministic test tables.
+- Updated the release process to require manual verification of every quality-gates job when main branch protection is not enabled.
 - Updated the isolated framework-test dependencies to Fiber `v2.52.14` / `v3.3.0` and quic-go `v0.59.1` to address the Dependabot alerts reviewed for this release.
 
 ## v1.0.0 — 2026-10-10

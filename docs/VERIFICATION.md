@@ -29,9 +29,11 @@ The cross-build smoke command compiles test binaries from macOS. It does not run
 
 ## Hosted CI
 
-All hosted CI jobs use Go 1.27.x. The [quality-gates run on 11 October 2026](https://github.com/ZihxS/RespKit/actions/runs/38072670243) passed on Ubuntu, macOS, and Windows. It also passed the upstream framework tests, race detector, 100% statement-coverage gate, and optional pgx mapper tests.
+The [SQLite integration quality-gates run on 11 October 2026](https://github.com/ZihxS/RespKit/actions/runs/38114456214) passed all ten jobs for commit `2d0c50ef7ef264a5dea9cd9e7b85424bf01c8c88`. Core tests and vet executed on Ubuntu, macOS, and Windows with Go 1.27.x. The run also passed upstream framework tests with the updated dependencies, the core race detector and 100% statement-coverage gate, and optional pgx mapper tests.
 
-An earlier workflow exposed a macOS runner issue with Go 1.22 and a coverage gap. CI now uses one Go version across all operating systems, and regression tests cover the previously unmeasured package paths. Go 1.22 remains the supported minimum for the core module and passed its local test run.
+SQLite tests executed with the real cgo driver, race detector, coverage, and vet on Ubuntu, macOS, and Windows with Go 1.27.x, plus Ubuntu with Go 1.22.x. The Windows run passed after the file-based contention fixture normalized its drive path to a valid file URI.
+
+An earlier core workflow exposed a macOS runner issue with Go 1.22 and a coverage gap. Core CI now uses Go 1.27 across all operating systems, and regression tests cover the previously unmeasured package paths. Go 1.22 remains the supported minimum for the core module and passed its local test run; SQLite additionally verifies that minimum in hosted Linux CI.
 
 ## Pinned upstream framework versions
 
@@ -46,7 +48,7 @@ An earlier workflow exposed a macOS runner issue with Go 1.22 and a coverage gap
 
 The suite sends HTTP requests through these routers and checks status codes, JSON bodies, localization and cache headers, error confidentiality, `Location`, and empty 204 responses. The result applies only to the pinned versions shown above.
 
-Run the framework suite with `make integration`. It fetches upstream dependencies, so network access is required. Both pgx and SQLite mapper tests use separate modules. These modules do not add dependencies to the core package. The workflow is configured to test SQLite on Linux, macOS, and Windows with Go 1.27 and its Go 1.22 minimum on Linux; those newly added hosted jobs have not run as part of this local verification.
+Run the framework suite with `make integration`. It fetches upstream dependencies, so network access is required. Both pgx and SQLite mapper tests use separate modules. These modules do not add dependencies to the core package. The hosted SQLite jobs described above executed successfully; select the branch or release commit in GitHub Actions to inspect its specific results.
 
 ## Coverage scope
 
@@ -55,5 +57,7 @@ The core 100% figure covers combined statement coverage for the root `resp` pack
 ## Security
 
 The release review on 11 October 2026 found ten open Dependabot alerts affecting Fiber v2/v3 and quic-go in the isolated framework-test module. Its dependencies were updated to Fiber v2.52.14/v3.3.0 and quic-go v0.59.1, the fixed versions identified by those alerts. These framework dependencies are not part of the core or SQLite adapter's runtime dependency graph. All 64 framework tests and framework-module `go vet` passed with the updated versions. The shared test client now creates outgoing HTTP requests with `http.NewRequest`, preserving the Host header required by the updated fasthttp parser.
+
+Private vulnerability reporting and Dependabot alerts were confirmed enabled. The owner chose to retain the repository's unprotected main settings. Publication follows the [manual release gates](../book/content/docs/release.mdx): verify every quality-gates job on the latest PR commit before merging and on the exact main commit before tagging.
 
 Raw error messages are hidden by default. `WithExposeInternalErrors(true)` adds a `debug_message` field and can disclose sensitive values; use it only in isolated local development. It is not enabled by request headers or inferred environment variables.
