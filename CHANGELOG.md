@@ -12,7 +12,7 @@
 - Updated Go coding guidance to require named error/status constants, keyed composite literals with one value per line, and deterministic test tables.
 - Updated the isolated framework-test dependencies to Fiber `v2.52.14` / `v3.3.0` and quic-go `v0.59.1` to address the Dependabot alerts reviewed for this release.
 
-## v1.0.0
+## v1.0.0 — 2026-10-10
 
 [GitHub release](https://github.com/ZihxS/RespKit/releases/tag/v1.0.0)
 
