@@ -23,7 +23,9 @@ If an adapter uses a new core API, such as the `resp.Code...` constants, publish
 
 Submit release changes through a pull request and satisfy every check required by the main branch. The branch must be up to date before merging, and the same requirements apply to maintainers.
 
-Branch protection can enforce these requirements, but publication does not require changing repository settings. When `main` is unprotected, the maintainer must manually confirm that every job in the quality-gates workflow passed for the latest pull-request commit before merging, then verify a successful run for the exact `main` commit before creating release tags. Pending, failed, canceled, or skipped quality-gates jobs do not satisfy the release checks.
+Quality gates run only on manual dispatch. Select `full` in **Actions → RespKit quality gates → Run workflow**, or use `gh workflow run ci.yml --ref your-branch -f suite=full`. The default `core` suite intentionally skips platform and integration checks and does not satisfy the merge or release requirements.
+
+Branch protection can enforce these requirements, but publication does not require changing repository settings. When `main` is unprotected, the maintainer must manually confirm that every job in a `full` quality-gates run passed for the latest pull-request commit before merging, then manually dispatch `full` on `main` and verify a successful run for the exact commit before creating release tags. Confirm each run's commit SHA. Pending, failed, canceled, or skipped quality-gates jobs do not satisfy the release checks.
 
 The release checks cover:
 
@@ -46,10 +48,10 @@ Review open Dependabot alerts before publication and resolve or document any tha
 
 1. Update the changelog and relevant documentation. Preserve the public API or describe breaking changes clearly.
 2. Run the checks in the [testing guide](/testing). Keep raw internal errors hidden and preserve the zero-configuration response helpers.
-3. Submit changes through a pull request and merge only after every required check passes.
-4. Confirm the exact main commit to release has a successful quality-gates run. Review open Dependabot alerts and resolve or document any that affect the release.
+3. Submit changes through a pull request, manually dispatch `full` for its latest reviewed commit, and merge only after every required check passes.
+4. Manually dispatch `full` on `main` and confirm the exact commit to release has a successful run with every job passed. Review open Dependabot alerts and resolve or document any that affect the release.
 5. Confirm private reporting and Dependabot alerts remain enabled. Review main branch protections; when `main` is unprotected, manually verify every quality-gates job for the latest pull-request commit and the exact `main` commit as described above.
 6. Create the version tag and GitHub release from that verified commit. Include installation instructions, changes, compatibility information, and links to verification results.
-7. Verify the published tag resolves to the intended commit, then update the release links in the documentation.
+7. Verify the published tag resolves to the intended commit, then update the release links in the documentation and manually dispatch `pages.yml` on `main` to publish them.
 
 Keep published version tags unchanged. Publish a new version when a released package needs a correction.

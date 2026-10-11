@@ -24,6 +24,16 @@ Each module declares its minimum Go version in `go.mod`. Optional integrations c
 
 The upstream suite exercises real Gin, Echo, Fiber, Chi, Gorilla/mux, and Beego routers with the race detector enabled. The [compatibility guide](/verification) explains how to find the selected dependency versions, platform matrix, and current CI results.
 
+## Manual GitHub Actions
+
+CI and documentation publication run only on manual dispatch; pushes, pull requests, and tags do not trigger them. Run local checks while developing, then open **Actions → RespKit quality gates → Run workflow** and select the branch to check.
+
+The default `core` suite runs two Ubuntu jobs for core tests, vet, race detection, and coverage. Select `full` to run all ten jobs, including macOS/Windows, upstream frameworks, pgx, and the SQLite platform/Go matrix. A successful `full` run for the latest reviewed commit is required before merging, and another `full` run for the exact `main` commit is required before a release. Skipped integration jobs in a `core` run do not satisfy these gates.
+
+Dispatch requires repository write access. Contributors without that access can run checks locally or in their fork; a maintainer runs the reviewed commit in this repository. See the [contribution guide](https://github.com/ZihxS/RespKit/blob/main/CONTRIBUTING.md#run-github-actions-manually) for CLI commands and fork handling.
+
+To update the published docs after merging, manually run **Publish RespKit documentation** on `main`. Other branches and tags are skipped.
+
 ## Contribution guidelines
 
 - Put HTTP adapter changes in `internal/transport` and verify them against the upstream framework.

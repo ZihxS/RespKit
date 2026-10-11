@@ -165,9 +165,11 @@ make integration
 make integration-mappers
 ```
 
-The main module supports Go 1.22 and later. CI checks the core on Ubuntu, macOS, and Windows
-with Go 1.27.x. See the [verification report](docs/VERIFICATION.md) for pinned framework
-versions and test results.
+The main module supports Go 1.22 and later. GitHub Actions runs manually: the default `core`
+suite checks the core on Ubuntu, while `full` also checks macOS, Windows, and integrations
+with Go 1.27.x. See the [contribution guide](CONTRIBUTING.md#run-github-actions-manually) for
+manual runs and the [verification report](docs/VERIFICATION.md) for pinned framework versions
+and test results.
 
 ## License
 

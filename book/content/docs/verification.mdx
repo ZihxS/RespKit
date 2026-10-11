@@ -28,6 +28,8 @@ Passing the suite establishes compatibility with the dependency versions used by
 
 ## CI checks
 
+GitHub Actions runs only on manual dispatch. The default `core` suite covers core tests, vet, race detection, and statement coverage on Ubuntu. The `full` suite covers every check and platform below and is required before merging or releasing. A `core` run does not establish integration or macOS/Windows compatibility.
+
 | Check | Scope |
 | --- | --- |
 | Core platform checks | Unit tests and go vet on Linux, macOS, and Windows |
@@ -36,7 +38,7 @@ Passing the suite establishes compatibility with the dependency versions used by
 | Framework runtime tests | Responses sent through upstream framework routers |
 | Optional mapper tests | Database-specific error mapping in separate modules |
 
-The [CI workflow](https://github.com/ZihxS/RespKit/blob/main/.github/workflows/ci.yml) defines the current toolchain and platform matrix. To inspect results, open [GitHub Actions](https://github.com/ZihxS/RespKit/actions/workflows/ci.yml), select the branch or tag, and open the run for the commit you want to use.
+The [CI workflow](https://github.com/ZihxS/RespKit/blob/main/.github/workflows/ci.yml) defines the current toolchain and platform matrix. To inspect results, open [GitHub Actions](https://github.com/ZihxS/RespKit/actions/workflows/ci.yml), select the branch or tag, and open the run for the commit you want to use. Check its suite and commit SHA as well as each job's result. The [testing guide](/testing) explains how to dispatch a run.
 
 Run the checks locally using the [testing guide](/testing). Integration suites download upstream dependencies and require network access. These dependencies remain outside the core module.
 

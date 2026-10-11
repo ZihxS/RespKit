@@ -15,7 +15,10 @@ npm run dev
 npm run build
 ```
 
-The generated site is written to `out/`. GitHub Pages builds and publishes it from the `main` branch workflow.
+The generated site is written to `out/`. GitHub Pages publication is manual. After merging
+documentation changes, open **Actions → Publish RespKit documentation → Run workflow** and
+select `main`, or run `gh workflow run pages.yml --ref main`. Other branches and tags are
+skipped; pushes do not publish the site.
 
 ## Branding
 

@@ -1,46 +1,67 @@
 name: RespKit quality gates
+run-name: "Quality gates (${{ inputs.suite }}) on ${{ github.ref_name }} by @${{ github.actor }}"
+
 on:
-  push:
-  pull_request:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: "core: Linux core checks; full: all platforms and integrations (required before merge/release)"
+        required: true
+        type: choice
+        default: core
+        options:
+          - core
+          - full
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.suite }}
+  cancel-in-progress: true
 
 jobs:
   core-matrix:
     name: Core / Go 1.27.x / ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        os: ${{ fromJSON(inputs.suite == 'full' && '["ubuntu-latest", "macos-latest", "windows-latest"]' || '["ubuntu-latest"]') }}
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.x'
+          cache: false
       - run: go test -count=1 ./...
       - run: go vet ./...
 
   core-quality:
     name: Core race and coverage
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.x'
+          cache: false
       - run: make race
       - run: make coverage
 
   framework-tests:
     name: Upstream framework runtime tests
+    if: ${{ inputs.suite == 'full' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.x'
+          cache-dependency-path: integrations/framework-tests/go.sum
       - name: Resolve framework dependencies
         working-directory: integrations/framework-tests
         run: go mod tidy
@@ -50,23 +71,28 @@ jobs:
 
   pgx-mapper:
     name: Optional pgx mapper tests
+    if: ${{ inputs.suite == 'full' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-go@v7
         with:
           go-version: '1.27.x'
+          cache-dependency-path: integrations/pgx/go.sum
       - name: Test pgx mapper
         working-directory: integrations/pgx
         run: go test -race -count=1 ./...
 
   sqlite3-mapper:
     name: Optional SQLite mapper / Go ${{ matrix.go }} / ${{ matrix.os }}
+    if: ${{ inputs.suite == 'full' }}
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
     env:
       CGO_ENABLED: '1'
     strategy:
-      fail-fast: false
+      fail-fast: true
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
         go: ['1.27.x']
@@ -78,6 +104,7 @@ jobs:
       - uses: actions/setup-go@v7
         with:
           go-version: ${{ matrix.go }}
+          cache-dependency-path: integrations/sqlite3/go.sum
       - name: Test SQLite mapper and real driver
         working-directory: integrations/sqlite3
         run: go test -race -count=1 -cover ./...
