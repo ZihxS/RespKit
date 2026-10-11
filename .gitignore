@@ -14,3 +14,4 @@ book/out/
 book/next-env.d.ts
 book/tsconfig.tsbuildinfo
 _book/
+promo/
