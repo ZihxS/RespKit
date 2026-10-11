@@ -316,9 +316,15 @@ func TestRealSQLiteConstraintsAndFallback(t *testing.T) {
 
 func TestRealSQLiteContention(t *testing.T) {
 	t.Run("busy", func(t *testing.T) {
+		path := filepath.ToSlash(filepath.Join(t.TempDir(), "private.db"))
+		// A Windows drive needs a leading slash in a file URI, otherwise
+		// net/url serializes C: as an authority that SQLite rejects.
+		if !strings.HasPrefix(path, "/") {
+			path = "/" + path
+		}
 		dsn := (&url.URL{
 			Scheme:   "file",
-			Path:     filepath.ToSlash(filepath.Join(t.TempDir(), "private.db")),
+			Path:     path,
 			RawQuery: "_busy_timeout=0",
 		}).String()
 		first := openDatabase(t, dsn)

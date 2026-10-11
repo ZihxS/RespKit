@@ -25,9 +25,10 @@ acceptance criteria. The contributor-guide task is labeled good first issue.
 
 ## Before opening a pull request
 
-The main branch requires pull requests and passing CI checks, including for administrators.
-Keep the branch up to date with main before merging. Force pushes and deletion of main are
-disabled.
+Submit changes to main through pull requests with passing CI checks, including changes by
+administrators. Keep the branch up to date with main before merging. When branch protection
+does not enforce the checks, maintainers must verify them manually. Do not force-push or
+delete main. See the [release process](book/content/docs/release.mdx) for publication checks.
 
 1. Include regression tests for changed behavior and real upstream tests for framework
    adapters.

@@ -7,6 +7,7 @@
 - Added public `resp.Code...` constants for built-in response and validation codes. Core classification, localization fallback, and optional database mappers reuse the canonical values; HTTP definitions use named `net/http` statuses.
 - Added an opt-in `integrations/sqlite3` module for `mattn/go-sqlite3`, compatible with Go 1.22. Typed and wrapped errors map to stable public codes with Indonesian/English messages and support for custom locales; raw database errors remain hidden by default.
 - Added real SQLite runtime tests, integration documentation, and CI checks for the SQLite mapper.
+- Normalized file-based SQLite test URIs for Windows drive paths while preserving real lock-contention tests on every CI platform.
 - Aligned the mattn SQLite mapper with issue #8: I/O failures and unknown extended codes stay safe internal errors, and the integration documentation explains driver choice.
 - Published SQLite and pgx as separately versioned optional modules at `integrations/sqlite3/v1.0.0` and `integrations/pgx/v1.0.0`, requiring core `v1.1.0`. The core remains Go 1.22-compatible and standard-library-only; SQLite requires cgo and a C compiler, while pgx requires Go 1.25.
 - Updated Go coding guidance to require named error/status constants, keyed composite literals with one value per line, and deterministic test tables.
