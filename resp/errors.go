@@ -57,7 +57,12 @@ func (e *AppError) RespKitDefinition() resolver.Definition {
 	if e == nil {
 		return resolver.Definition{}
 	}
-	return resolver.Definition{Code: e.Code, Status: e.Status, Details: e.Details, Headers: e.Headers}
+	return resolver.Definition{
+		Code:    e.Code,
+		Status:  e.Status,
+		Details: e.Details,
+		Headers: e.Headers,
+	}
 }
 
 func (e *AppError) Unwrap() error {

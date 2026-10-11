@@ -19,6 +19,7 @@ integration:
 
 integration-mappers:
 	cd integrations/pgx && go test -race -count=1 ./...
+	cd integrations/sqlite3 && go test -race -count=1 -cover ./... && go vet ./...
 
 doctor:
 	go run ./cmd/respkit doctor

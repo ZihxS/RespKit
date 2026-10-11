@@ -59,3 +59,28 @@ jobs:
       - name: Test pgx mapper
         working-directory: integrations/pgx
         run: go test -race -count=1 ./...
+
+  sqlite3-mapper:
+    name: Optional SQLite mapper / Go ${{ matrix.go }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CGO_ENABLED: '1'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        go: ['1.27.x']
+        include:
+          - os: ubuntu-latest
+            go: '1.22.x'
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Test SQLite mapper and real driver
+        working-directory: integrations/sqlite3
+        run: go test -race -count=1 -cover ./...
+      - name: Vet SQLite mapper
+        working-directory: integrations/sqlite3
+        run: go vet ./...

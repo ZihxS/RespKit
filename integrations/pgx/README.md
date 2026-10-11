@@ -7,11 +7,11 @@ This optional module maps selected PostgreSQL SQLSTATEs from pgx/v5 to safe Resp
 Add the core response package and the adapter to the application:
 
 ```bash
-go get github.com/ZihxS/RespKit/resp
-go get github.com/ZihxS/RespKit/integrations/pgx
+go get github.com/ZihxS/RespKit/resp@v1.1.0
+go get github.com/ZihxS/RespKit/integrations/pgx@v1.0.0
 ```
 
-The adapter uses pgx/v5 v5.11.0, which requires Go 1.25. It is a separate module; the core module supports Go 1.22 and later and has no pgx dependency.
+The adapter uses pgx/v5 v5.11.0, which requires Go 1.25, and requires core RespKit v1.1.0 or later. Its separate release tag is `integrations/pgx/v1.0.0`; the core module supports Go 1.22 and later and has no pgx dependency.
 
 ## Configure the mapper
 

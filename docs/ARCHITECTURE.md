@@ -70,6 +70,7 @@ examples/nethttp/   # runnable real HTTP example
 integrations/       # separate Go modules for integration tests and optional adapters
   framework-tests/  # upstream runtime tests, organized by framework + shared testkit
   pgx/              # optional PostgreSQL error mapper
+  sqlite3/          # optional mattn/go-sqlite3 mapper and real SQLite runtime tests
 .github/workflows/  # standard Go and real-framework CI
 ```
 

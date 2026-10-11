@@ -14,6 +14,7 @@ The minimum Go version for each module is declared in its `go.mod` file. Optiona
 | Core | Public response helpers and internal runtime packages; standard library only | [Root go.mod](https://github.com/ZihxS/RespKit/blob/main/go.mod) |
 | Framework tests | Runtime checks against upstream HTTP frameworks | [Framework test go.mod](https://github.com/ZihxS/RespKit/blob/main/integrations/framework-tests/go.mod) |
 | Optional pgx adapter | PostgreSQL error mapping with pgx | [pgx adapter go.mod](https://github.com/ZihxS/RespKit/blob/main/integrations/pgx/go.mod) |
+| Optional SQLite adapter | SQLite error mapping with mattn/go-sqlite3; cgo and C compiler required | [SQLite adapter go.mod](https://github.com/ZihxS/RespKit/blob/main/integrations/sqlite3/go.mod) |
 
 For a released version, select its tag on GitHub before inspecting the manifest. This keeps the requirements aligned with the code you install.
 

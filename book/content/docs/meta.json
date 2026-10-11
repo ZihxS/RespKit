@@ -12,6 +12,7 @@
     "---Integrations---",
     "frameworks",
     "postgres",
+    "sqlite",
     "---Reference---",
     "diagnostics",
     "security",

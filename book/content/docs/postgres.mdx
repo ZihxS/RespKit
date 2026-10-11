@@ -1,5 +1,5 @@
 ---
-title: "Optional integrations"
+title: "PostgreSQL integration"
 description: "Add dependency-specific error mapping without expanding the core module."
 ---
 
@@ -14,7 +14,7 @@ The core module already recognizes PostgreSQL SQLSTATE `23505` through the `SQLS
 Install the adapter in addition to the core package:
 
 ```bash
-go get github.com/ZihxS/RespKit/integrations/pgx
+go get github.com/ZihxS/RespKit/integrations/pgx@v1.0.0
 ```
 
 The adapter depends on pgx/v5 `v5.11.0` and requires Go 1.25. This dependency applies only to the optional module; the core module supports Go 1.22 and later.
@@ -53,5 +53,7 @@ return api.Fail(ctx, dbErr)
 Other current or future PostgreSQL codes map conservatively to `INTERNAL_ERROR` (500). This avoids returning a client error for database bugs, authentication or configuration problems, protocol failures, or internal conditions. The raw PostgreSQL message is never included in the client response; SQLSTATE remains available in diagnostics.
 
 ## Adding another integration
+
+For `mattn/go-sqlite3`, use the optional [SQLite adapter](/sqlite). It includes constraint, contention, and database availability mappings with Indonesian/English messages.
 
 New integrations should have a clear source error type and deterministic mappings. Keep third-party dependencies in a separate module, make the integration opt-in, and test wrapped errors and fallback behavior. Do not classify errors based only on their message text.

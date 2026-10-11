@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"testing"
 
@@ -19,20 +18,67 @@ type Performer func(*http.Request) (*http.Response, error)
 func TestResponse(t *testing.T, framework string, call Performer) {
 	t.Helper()
 	for _, tt := range []struct {
-		path, method, locale string
-		status               int
-		code                 string
+		path   string
+		method string
+		locale string
+		status int
+		code   string
 	}{
-		{"/ok", "GET", "en-US", 200, ""},
-		{"/error", "GET", "en-US", 409, "RESOURCE_ALREADY_EXISTS"},
-		{"/error", "GET", "id-ID", 409, "RESOURCE_ALREADY_EXISTS"},
-		{"/raw", "GET", "en", 500, "INTERNAL_ERROR"},
-		{"/debug", "GET", "en", 500, "INTERNAL_ERROR"},
-		{"/created", "POST", "en", 201, ""},
-		{"/empty", "GET", "id", 204, ""},
+		{
+			path:   "/ok",
+			method: http.MethodGet,
+			locale: "en-US",
+			status: http.StatusOK,
+		},
+		{
+			path:   "/error",
+			method: http.MethodGet,
+			locale: "en-US",
+			status: http.StatusConflict,
+			code:   resp.CodeResourceAlreadyExists,
+		},
+		{
+			path:   "/error",
+			method: http.MethodGet,
+			locale: "id-ID",
+			status: http.StatusConflict,
+			code:   resp.CodeResourceAlreadyExists,
+		},
+		{
+			path:   "/raw",
+			method: http.MethodGet,
+			locale: "en",
+			status: http.StatusInternalServerError,
+			code:   resp.CodeInternalError,
+		},
+		{
+			path:   "/debug",
+			method: http.MethodGet,
+			locale: "en",
+			status: http.StatusInternalServerError,
+			code:   resp.CodeInternalError,
+		},
+		{
+			path:   "/created",
+			method: http.MethodPost,
+			locale: "en",
+			status: http.StatusCreated,
+		},
+		{
+			path:   "/empty",
+			method: http.MethodGet,
+			locale: "id",
+			status: http.StatusNoContent,
+		},
 	} {
 		t.Run(framework+tt.path+tt.locale, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, "http://localhost"+tt.path, nil)
+			// Framework test clients serialize this request as an outgoing HTTP
+			// request. NewRequest preserves the URL host without a server's
+			// absolute RequestURI, including with stricter fasthttp parsers.
+			req, err := http.NewRequest(tt.method, "http://localhost"+tt.path, nil)
+			if err != nil {
+				t.Fatal(err)
+			}
 			req.Header.Set("Accept-Language", tt.locale)
 			req.Header.Set("X-Request-ID", "req_integration")
 			r, err := call(req)
@@ -47,7 +93,7 @@ func TestResponse(t *testing.T, framework string, call Performer) {
 			if r.StatusCode != tt.status {
 				t.Fatalf("status=%d want=%d body=%s", r.StatusCode, tt.status, body)
 			}
-			if tt.status == 204 {
+			if tt.status == http.StatusNoContent {
 				if len(body) != 0 {
 					t.Fatalf("204 with body %q", body)
 				}
@@ -81,7 +127,7 @@ func TestResponse(t *testing.T, framework string, call Performer) {
 			} else if obj["success"] != true {
 				t.Fatal(obj)
 			}
-			if tt.status == 201 && r.Header.Get("Location") != "/users/99" {
+			if tt.status == http.StatusCreated && r.Header.Get("Location") != "/users/99" {
 				t.Fatalf("missing location: %v", r.Header)
 			}
 		})
