@@ -9,7 +9,7 @@ and selects translated messages for each request. It works with Go's standard HT
 popular web frameworks, while the core module stays dependency-free.
 
 [Documentation](https://zihxs.github.io/RespKit/) ·
-[Examples](https://zihxs.github.io/RespKit/quickstart/) ·
+[Examples](#example-projects) ·
 [Report a security issue](SECURITY.md)
 
 ## Features
@@ -69,6 +69,21 @@ func main() {
 Gin, Echo, and Fiber accept their native contexts. Standard net/http handlers, Chi, Gorilla/mux,
 and Beego pass the response writer and request to RespKit. See the
 [framework guide](https://zihxs.github.io/RespKit/frameworks/) for examples for each router.
+
+## Example projects
+
+Runnable examples live in separate repositories, each with its own setup instructions,
+dependencies, and tests.
+
+| Repository                                                            | Purpose                                                                                     |
+| --------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| [Fiber v3 backend](https://github.com/ZihxS/RespKit-example-fiber-v3) | SQLite project/task API, response playground, localization, error mapping, and diagnostics. |
+| [Shared frontend](https://github.com/ZihxS/RespKit-example-frontend)  | HTML, CSS, and JavaScript interface for compatible example backends.                        |
+
+Start a backend and connect the shared frontend to its API URL. Additional framework examples
+will be maintained in their own repositories and added to this list. The frontend's
+[HTTP contract](https://github.com/ZihxS/RespKit-example-frontend/blob/main/API_CONTRACT.md)
+defines the endpoints required by compatible backends.
 
 ## Response formats
 

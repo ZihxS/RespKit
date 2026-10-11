@@ -1,0 +1,29 @@
+---
+title: "Example projects"
+description: "Run RespKit example applications from their own repositories."
+---
+
+Runnable examples live in separate repositories. Each backend has its own dependencies, setup instructions, and tests, while a shared frontend connects to their APIs.
+
+## Available repositories
+
+| Repository                                                            | Purpose                                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| [Fiber v3 backend](https://github.com/ZihxS/RespKit-example-fiber-v3) | Project/task API using SQLite, with a response playground and diagnostics. |
+| [Shared frontend](https://github.com/ZihxS/RespKit-example-frontend)  | HTML, CSS, and JavaScript interface for compatible example backends.       |
+
+The Fiber example demonstrates response helpers, JSON naming, Problem Details, field validation, error mappers, request IDs, headers, internal error privacy, and Indonesian, English, and French messages.
+
+## Run an example
+
+1. Follow the backend repository's README to start its API.
+2. Follow the shared frontend's README to start the interface.
+3. Open **Config → API connection**, enter the backend's API URL, and select **Connect**.
+
+Use **Projects** to try CRUD operations, **Response examples** to inspect individual RespKit features, and **Error codes** to compare configured translations.
+
+## Other frameworks
+
+Additional framework examples are maintained in their own repositories and added to this directory as they become available. Compatible backends implement the shared frontend's [HTTP contract](https://github.com/ZihxS/RespKit-example-frontend/blob/main/API_CONTRACT.md), so the frontend can be reused across frameworks.
+
+For handler snippets and framework context types, see [HTTP frameworks](/frameworks).
