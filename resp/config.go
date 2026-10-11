@@ -9,7 +9,7 @@ import (
 	"github.com/ZihxS/RespKit/internal/resolver"
 )
 
-const Version = "1.0.0"
+const Version = "1.1.0"
 
 type Naming string
 

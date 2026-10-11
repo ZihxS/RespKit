@@ -20,6 +20,8 @@ make integration-mappers
 
 Each module declares its minimum Go version in `go.mod`. Optional integrations can require a newer toolchain than the core library. Downloading dependencies for the integration suites requires network access.
 
+`make integration-mappers` checks both pgx and SQLite. The SQLite tests execute the real `mattn/go-sqlite3` driver and require `CGO_ENABLED=1` and a C compiler. They exercise database constraints, lock contention, capacity limits, safe fallback behavior, and localized HTTP responses in envelope and Problem Details formats.
+
 The upstream suite exercises real Gin, Echo, Fiber, Chi, Gorilla/mux, and Beego routers with the race detector enabled. The [compatibility guide](/verification) explains how to find the selected dependency versions, platform matrix, and current CI results.
 
 ## Contribution guidelines

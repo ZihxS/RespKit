@@ -17,6 +17,8 @@ To install a specific release, append its tag to the package path with `@`. Chec
 
 Optional integrations are separate Go modules with their own dependencies and Go requirements. A root release tag does not version a nested module; nested modules require tags that include their directory path.
 
+If an adapter uses a new core API, such as the `resp.Code...` constants, publish the core release first and update the adapter's required core version before tagging the nested module. Verify installation without the repository's local `replace` directive so the released dependency graph includes every API the adapter uses.
+
 ## Requirements before publication
 
 Submit release changes through a pull request and satisfy every check required by the main branch. The branch must be up to date before merging, and the same requirements apply to maintainers.

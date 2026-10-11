@@ -1,0 +1,85 @@
+---
+title: "SQLite integration"
+description: "Optional mattn/go-sqlite3 error mapping with localized, safe HTTP responses."
+---
+
+The optional `integrations/sqlite3` module maps typed [mattn/go-sqlite3](https://github.com/mattn/go-sqlite3) errors to stable public codes. It supports Go 1.22 and pins driver version `v1.14.52`. The [driver requires cgo and a C compiler](https://github.com/mattn/go-sqlite3#installation); build with `CGO_ENABLED=1`. The core RespKit module stays standard-library-only.
+
+## Choose a SQLite driver
+
+Use this integration for applications using `mattn/go-sqlite3` with cgo and a C compiler. For cgo-free builds, [modernc.org/sqlite](https://pkg.go.dev/modernc.org/sqlite) is a pure Go alternative with different error types. Its separate RespKit adapter is tracked in [issue #7](https://github.com/ZihxS/RespKit/issues/7) and has not shipped in this workspace. Check the chosen driver's own Go/platform requirements and install only the corresponding adapter; `sqlite3mapper.Option()` does not classify modernc errors.
+
+## Install and configure
+
+Install the adapter with core RespKit v1.1.0 or later:
+
+```bash
+go get github.com/ZihxS/RespKit/resp@v1.1.0
+go get github.com/ZihxS/RespKit/integrations/sqlite3@v1.0.0
+```
+
+The adapter has its own [v1.0.0 release](https://github.com/ZihxS/RespKit/releases/tag/integrations/sqlite3/v1.0.0). See the [adapter README](https://github.com/ZihxS/RespKit/blob/main/integrations/sqlite3/README.md) for local development setup and module requirements.
+
+Create an engine once at startup:
+
+```go
+import (
+	sqlite3mapper "github.com/ZihxS/RespKit/integrations/sqlite3"
+	"github.com/ZihxS/RespKit/resp"
+)
+
+api, err := resp.New(sqlite3mapper.Option())
+if err != nil {
+	return err
+}
+
+return api.Fail(ctx, dbErr)
+```
+
+Gin, Echo, and Fiber use their native context. For `net/http`, Chi, Gorilla/mux, and Beego use `api.Fail(resp.HTTP(w, r), dbErr)`. The adapter accepts wrapped and joined `sqlite3.Error` values/pointers and the driver's numeric error types via `errors.As`. It does not inspect error message strings, open connections, retry queries, or change RespKit's global configuration. Global helpers can opt in at startup with `resp.Configure(sqlite3mapper.Option())`.
+
+## SQLite error mappings
+
+| SQLite condition | Public code | HTTP |
+| --- | --- | ---: |
+| Unique, primary-key, or rowid constraint | `RESOURCE_ALREADY_EXISTS` | 409 |
+| Not-null, foreign-key, check, or STRICT datatype constraint | `VALIDATION_FAILED` | 422 |
+| Datatype mismatch | `BAD_REQUEST` | 400 |
+| Text/BLOB exceeds the SQLite size limit | `VALIDATION_FAILED` | 422 |
+| Busy or locked database/table; reviewed recovery/snapshot/timeout/shared-cache codes | `RESOURCE_CONFLICT` | 409 |
+| Out of memory, database/disk full, or cannot open database; reviewed open variants | `SERVICE_UNAVAILABLE` | 503 |
+| I/O failures, SQL/schema bugs, read-only or database permission errors, corruption, invalid files, misuse, ambiguous constraints, or unknown primary/extended codes | `INTERNAL_ERROR` | 500 |
+
+Known extended constraint codes are handled specifically. Generic constraints and trigger/function/commit-hook/virtual-table failures are application-specific and fall back to 500. Unknown extended codes also fall back to 500 rather than inheriting a recognized primary mapping. Database permission or authorization failures do not automatically become HTTP 401/403. SQLite's `ErrNotFound` is an internal opcode condition, not a missing application resource. This follows the conservative policy in [issue #8](https://github.com/ZihxS/RespKit/issues/8) and the planned modernc adapter. See [SQLite's result code reference](https://www.sqlite.org/rescode.html) and the [adapter mapping table](https://github.com/ZihxS/RespKit/blob/main/integrations/sqlite3/README.md#error-mappings) for details.
+
+Handle transaction rollback and retries in your application. No retry or `Retry-After` is applied automatically. Errors wrapping `context.Canceled` preserve RespKit's behavior: `api.Fail` returns `resp.ErrRequestCanceled` without writing a response.
+
+`sql.ErrNoRows` stays unmapped because its meaning depends on the query. For a resource lookup, create an explicit application error:
+
+```go
+if errors.Is(dbErr, sql.ErrNoRows) {
+	dbErr = resp.NewError(resp.CodeResourceNotFound, http.StatusNotFound, resp.WithCause(dbErr))
+}
+return api.Fail(resp.HTTP(w, r), dbErr)
+```
+
+Application errors take precedence over the SQLite mapper. To override a database condition, register an application mapper before `sqlite3mapper.Option()`.
+
+## Localized messages
+
+All six mapped codes use the built-in Indonesian (`id`, default) and English (`en`) catalogs. For example, a unique constraint failure returns HTTP 409 with the stable code `RESOURCE_ALREADY_EXISTS`:
+
+| Request language | Public message |
+| --- | --- |
+| Default or `Accept-Language: id` | Data sudah terdaftar. |
+| `Accept-Language: en` | The resource already exists. |
+
+Regional language tags and quality values are parsed per request. RespKit sets `Content-Language` and `Vary: Accept-Language`. `resp.Locale("en")` overrides the language for one response; `resp.WithDefaultLocale("en")` changes the engine default. Add other languages with `resp.WithTranslations`, providing translations for `RESOURCE_ALREADY_EXISTS`, `VALIDATION_FAILED`, `BAD_REQUEST`, `RESOURCE_CONFLICT`, `SERVICE_UNAVAILABLE`, and `INTERNAL_ERROR`. Missing entries fall back to the default locale. See the [localization guide](/localization) and the [complete custom catalog example](https://github.com/ZihxS/RespKit/blob/main/integrations/sqlite3/README.md#localized-messages).
+
+The default envelope and [Problem Details format](/responses) both use localized messages. Raw SQLite messages, schema names, paths, and OS errors remain hidden by default. Field details must be supplied explicitly through trusted application errors. `WithExposeInternalErrors(true)` remains unsafe outside isolated local development.
+
+## Diagnostics and verification
+
+`api.Inspect(dbErr)` reports `custom.sqlite3` for accepted typed errors, including those safely mapped to 500. Ordinary SQLite errors have no SQLSTATE, so the core diagnostic `source_code` is empty. Applications can inspect the typed driver's primary/extended codes privately.
+
+Run `make integration-mappers` to check both SQLite and pgx. The SQLite suite executes the real driver against constraint, contention, read-only, capacity, and database-open failures. It checks localized messages, custom locale fallback, cancellation, confidentiality, and both response formats. It requires cgo and a C compiler. CI is configured for Linux/macOS/Windows runs and Go 1.22 on Linux.

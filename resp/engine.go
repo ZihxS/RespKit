@@ -29,7 +29,7 @@ func (e *Engine) send(ctx any, status int, data any, failure *Definition, opts .
 	}
 	language := e.effectiveLocale(e.chooseLocale(out.Header("Accept-Language"), cfg.locale), failure)
 	requestID := safeRequestID(out.Header("X-Request-ID"))
-	if cfg.location != "" && status == 201 {
+	if cfg.location != "" && status == http.StatusCreated {
 		out.SetHeader("Location", cfg.location)
 	}
 	out.SetHeader("Content-Language", language)
@@ -108,16 +108,16 @@ func (e *Engine) writeMarshalFallback(out transport.Adapter, locale, requestID s
 	if e.exposeInternal && cause != nil {
 		debug = cause.Error()
 	}
-	body := formatter.Failure("INTERNAL_ERROR", e.translate(locale, "INTERNAL_ERROR", nil), debug, nil, string(e.naming))
+	body := formatter.Failure(CodeInternalError, e.translate(locale, CodeInternalError, nil), debug, nil, string(e.naming))
 	mediaType := "application/json; charset=utf-8"
 	if e.format == ProblemDetails {
 		// RFC 9457 defines errors, including serialization failures.
 		mediaType = "application/problem+json"
 		body = formatter.Problem(
-			500,
-			"Internal Server Error",
-			"INTERNAL_ERROR",
-			e.translate(locale, "INTERNAL_ERROR", nil),
+			http.StatusInternalServerError,
+			http.StatusText(http.StatusInternalServerError),
+			CodeInternalError,
+			e.translate(locale, CodeInternalError, nil),
 			debug,
 		)
 	}
@@ -142,25 +142,25 @@ func (e *Engine) publicMessage(locale, code string, status int) string {
 		return e.translate(locale, code, nil)
 	}
 	fallbackCodes := map[int]string{
-		400: "BAD_REQUEST",
-		401: "UNAUTHORIZED",
-		403: "FORBIDDEN",
-		404: "RESOURCE_NOT_FOUND",
-		409: "RESOURCE_CONFLICT",
-		422: "VALIDATION_FAILED",
-		429: "RATE_LIMITED",
-		503: "SERVICE_UNAVAILABLE",
+		http.StatusBadRequest:          CodeBadRequest,
+		http.StatusUnauthorized:        CodeUnauthorized,
+		http.StatusForbidden:           CodeForbidden,
+		http.StatusNotFound:            CodeResourceNotFound,
+		http.StatusConflict:            CodeResourceConflict,
+		http.StatusUnprocessableEntity: CodeValidationFailed,
+		http.StatusTooManyRequests:     CodeRateLimited,
+		http.StatusServiceUnavailable:  CodeServiceUnavailable,
 	}
 	fallback := fallbackCodes[status]
 	if fallback == "" {
-		fallback = "INTERNAL_ERROR"
+		fallback = CodeInternalError
 	}
 	return e.translate(locale, fallback, nil)
 }
 
 func (e *Engine) fieldMessage(locale, code string, params map[string]string) string {
 	if !e.hasTranslation(locale, code) && !e.hasTranslation(e.defaultLocale, code) {
-		return e.translate(locale, "VALIDATION_FAILED", nil)
+		return e.translate(locale, CodeValidationFailed, nil)
 	}
 	return e.translate(locale, code, params)
 }

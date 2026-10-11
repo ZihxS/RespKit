@@ -19,15 +19,23 @@ RespKit classifies errors by their type and identity, including errors wrapped w
 | `resp.ErrUnavailable` | `SERVICE_UNAVAILABLE` | 503 |
 | Unrecognized error | `INTERNAL_ERROR` | 500 |
 
-Malformed JSON and JSON with an incompatible value type map to `BAD_REQUEST`. PostgreSQL SQLSTATE `23505` maps to `RESOURCE_ALREADY_EXISTS` (409) without requiring a database driver. Other database conditions remain unmapped in the core because their HTTP meaning depends on the application. The optional [database integration guide](/postgres) describes the pgx adapter.
+Malformed JSON and JSON with an incompatible value type map to `BAD_REQUEST`. PostgreSQL SQLSTATE `23505` maps to `RESOURCE_ALREADY_EXISTS` (409) without requiring a database driver. Other database conditions remain unmapped in the core because their HTTP meaning depends on the application. Optional adapters for [PostgreSQL](/postgres) and [SQLite](/sqlite) provide typed error mappings with localized messages.
 
 ## Create an application error
+
+Use built-in constants such as `resp.CodeValidationFailed` and `resp.CodeResourceAlreadyExists` when constructing `resp.Definition`, `resp.NewError`, or translation maps. These constants preserve the stable wire values listed above; HTTP statuses use `net/http` constants. Validation details also have `resp.CodeInvalidEmail`, `resp.CodeFieldRequired`, and `resp.CodeMinLength`.
+
+Define application-specific codes once as named constants:
+
+```go
+const codePaymentDeclined = "PAYMENT_DECLINED"
+```
 
 Use a stable public code and a status that matches the domain condition. Attach the original error as a cause for server-side inspection:
 
 ```go
 err := resp.NewError(
-	"PAYMENT_DECLINED",
+	codePaymentDeclined,
 	http.StatusUnprocessableEntity,
 	resp.WithCause(errFromPaymentProvider),
 )
@@ -42,13 +50,16 @@ Field details help clients identify values to fix. Include only information that
 
 ```go
 err := resp.NewError(
-	"VALIDATION_FAILED",
+	resp.CodeValidationFailed,
 	http.StatusUnprocessableEntity,
 	resp.WithDetails(
-		resp.FieldError{Field: "email", Code: "FIELD_REQUIRED"},
+		resp.FieldError{
+			Field: "email",
+			Code:  resp.CodeFieldRequired,
+		},
 		resp.FieldError{
 			Field:  "name",
-			Code:   "MIN_LENGTH",
+			Code:   resp.CodeMinLength,
 			Params: map[string]string{"min": "3"},
 		},
 	),
@@ -70,7 +81,7 @@ func mapPaymentError(err error) (resp.Definition, bool) {
 	}
 
 	return resp.Definition{
-		Code:   "PAYMENT_DECLINED",
+		Code:   codePaymentDeclined,
 		Status: http.StatusUnprocessableEntity,
 	}, true
 }

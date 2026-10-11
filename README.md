@@ -144,9 +144,12 @@ The core module recognizes PostgreSQL's unique-constraint SQLSTATE without impor
 database driver. Optional adapters add mappings for a specific database or driver and live in
 separate Go modules, so applications only include the integrations they use.
 
-The [pgx adapter](integrations/pgx/README.md) currently maps additional PostgreSQL errors. See
-the [integration guide](https://zihxs.github.io/RespKit/postgres/) for its supported SQLSTATEs
-and setup.
+The [pgx adapter](integrations/pgx/README.md) maps additional PostgreSQL errors. The
+[SQLite adapter](integrations/sqlite3/README.md) maps typed `mattn/go-sqlite3` errors,
+including constraints, contention, and database availability failures. Both use RespKit's
+Indonesian/English messages and support additional translation catalogs. See the
+[PostgreSQL guide](https://zihxs.github.io/RespKit/postgres/) and
+[SQLite guide](https://zihxs.github.io/RespKit/sqlite/) for mappings and setup.
 
 ## Testing and compatibility
 

@@ -52,7 +52,9 @@ make integration-mappers
 
 The coverage gate requires 100% combined statement coverage for resp and internal runtime
 packages. The framework test module requires Go 1.26 or later; the optional pgx adapter
-requires Go 1.25. Integration checks download upstream dependencies and need network access.
+requires Go 1.25. The optional SQLite adapter supports Go 1.22 and requires cgo and a C
+compiler. `make integration-mappers` checks both database adapters. Integration checks
+download upstream dependencies and need network access.
 
 Build the documentation site from the book directory:
 

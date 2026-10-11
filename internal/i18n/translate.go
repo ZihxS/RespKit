@@ -1,6 +1,10 @@
 package i18n
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/ZihxS/RespKit/internal/resolver"
+)
 
 func Translate(
 	translations map[string]map[string]string,
@@ -14,9 +18,9 @@ func Translate(
 		msg = translations[defaultLocale][code]
 	}
 	if msg == "" {
-		msg = translations[locale]["INTERNAL_ERROR"]
+		msg = translations[locale][resolver.CodeInternalError]
 		if msg == "" {
-			msg = translations[defaultLocale]["INTERNAL_ERROR"]
+			msg = translations[defaultLocale][resolver.CodeInternalError]
 		}
 	}
 	for k, v := range params {
